@@ -5,7 +5,7 @@ const settings = {
   rows: 4,
   baseCols: 4,
   waveExponent: 1,
-  offsetMode: 'symmetrical', // 'symmetrical' | 'left' | 'random'
+  offsetMode: 'symmetrical', // 'symmetrical' | 'left' | 'right' | 'random'
   offsetMultiplier: 0,       // Controls offset amount
   colorVariant: 'white'      // 'white' | 'golden brown' | 'red' | 'black' | 'random alternating'
 };
@@ -64,7 +64,7 @@ function setup() {
 
   // Offset mode controls
   let offsetFolder = gui.addFolder('Offset');
-  offsetFolder.add(settings, 'offsetMode', ['symmetrical', 'left', 'random'])
+  offsetFolder.add(settings, 'offsetMode', ['symmetrical', 'left', 'right', 'random'])
               .name('Offset Mode')
               .onChange(() => {
                 randomSeed(99);
@@ -88,17 +88,17 @@ function draw() {
   background(0);
 
   // Background cycling (unchanged)
-  if (bgImgs.length > 0) {
-    let speedBg = 0.08;
-    let phaseBg = frameCount * speedBg;
-    let raw = ((phaseBg % TWO_PI) + TWO_PI) % TWO_PI;
-    let idx = floor((raw / TWO_PI) * bgImgs.length);
-    idx = constrain(idx, 0, bgImgs.length - 1);
-    image(bgImgs[idx], 0, 0, width, height);
-  } else {
-    fill(50);
-    rect(0, 0, width, height);
-  }
+  // if (bgImgs.length > 0) {
+  //   let speedBg = 0.08;
+  //   let phaseBg = frameCount * speedBg;
+  //   let raw = ((phaseBg % TWO_PI) + TWO_PI) % TWO_PI;
+  //   let idx = floor((raw / TWO_PI) * bgImgs.length);
+  //   idx = constrain(idx, 0, bgImgs.length - 1);
+  //   image(bgImgs[idx], 0, 0, width, height);
+  // } else {
+  //   fill(50);
+  //   rect(0, 0, width, height);
+  // }
 
   const { rows, baseCols, waveExponent, offsetMode, offsetMultiplier, colorVariant } = settings;
 
@@ -121,6 +121,9 @@ function draw() {
         case 'left':
           offset = j * offsetMultiplier;
           break;
+        case 'right':
+          offset = (cols - 1 - j) * offsetMultiplier;
+          break;
         case 'random':
           offset = random(-PI, PI) * offsetMultiplier;
           break;
@@ -140,6 +143,8 @@ function draw() {
 
       if (offsetMode === 'left') {
         x = j * cellW;
+      } else if (offsetMode === 'right') {
+        x = (j + 1) * cellW - rectW;
       } else if (isCenter) {
         x = j * cellW + (cellW - rectW) / 2;
       } else if (j < half) {
