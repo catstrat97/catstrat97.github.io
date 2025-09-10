@@ -1,7 +1,45 @@
-html, body {
+body {
+  font-family: 'Switzer', sans-serif;
+
   margin: 0;
-  padding: 0;
+ background-color: #010101;
+ color: #464646;
+  padding: 0px;
+  padding-left: 16px;
+  padding-right: 16px;
+  line-height: 1.1;
 }
-canvas {
-  display: block;
+
+p{
+  font-weight: 700;
+  font-size: 36px;
+  padding-bottom: 10px;
+}
+
+.small-text{
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.red-text{
+  color: #ff0000;
+}
+
+
+h1{
+  letter-spacing: -5%;
+  margin-block-start: 12px;
+  margin-block-end: 0;
+  font-weight: 900;
+  font-size: 96px;
+}
+
+img{
+  padding-top: 12px;
+  width: 20%;
+}
+
+hr{
+  border: 0.5px solid #464646;
+  width: 100%;
 }
