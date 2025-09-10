@@ -2,22 +2,25 @@ body {
   font-family: 'Switzer', sans-serif;
 
   margin: 0;
- background-color: #010101;
+ background-color: #dadada; 
  color: #464646;
-  padding: 0px;
+ /* background-color: #0000bd; */
+  padding-top: 16px;
   padding-left: 16px;
   padding-right: 16px;
-  line-height: 1.1;
+  line-height: 38px;
+  letter-spacing: -1.2px;
+  
 }
 
 p{
   font-weight: 700;
-  font-size: 36px;
-  padding-bottom: 10px;
+  font-size: 40px;
+  padding-bottom: 48px;
 }
 
 .small-text{
-  font-size: 24px;
+  font-size: 40px;
   font-weight: 700;
 }
 
@@ -25,23 +28,32 @@ p{
   color: #464646;
 }
 
-
-.vert{
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
+.second-paragraph{
+  color: #7c7c7c
 }
+
+
 
 .horiz{
   display: flex;
   flex-direction: row;
   gap: 12px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.vert{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 calc(20% - 9.6px); /* 5 tiles with 12px gaps */
+  min-width: 0;
 }
 
 h1{
   letter-spacing: -5%;
   margin-block-start: 12px;
+  padding-bottom: 42px;
   margin-block-end: 0;
   font-weight: 900;
   font-size: 96px;
@@ -51,23 +63,59 @@ img{
   width: 100%;
 }
 
+video{
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
 hr{
-  border: 0.5px solid #464646;
+  border: 4px solid #464646;
+  margin-top: 12px;
   width: 100%;
 }
 
-/* per-character flip on hover */
-p{
-  perspective: 600px;
+.black-section{
+  background-color: #010101;
+  width: 100%;
+  padding: 20px;
+  min-height: 100vh;
 }
 
+/* mouse trail character flip effect */
 p .char{
   display: inline-block;
-  transition: transform 0.35s ease;
+  transition: transform 0.1s ease;
   transform-origin: 50% 50%;
   will-change: transform;
 }
 
-p:hover .char{
+p .char.flipped{
   transform: rotateY(180deg);
+}
+
+/* custom circular cursor */
+body {
+  cursor: none;
+}
+
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgb(25, 84, 149), rgb(32, 125, 60), rgb(230, 38, 36));
+  box-shadow: 
+    0 0 10px rgba(25, 84, 149, 0.8),
+    0 0 20px rgba(32, 125, 60, 0.6),
+    0 0 30px rgba(230, 38, 36, 0.4),
+    0 0 40px rgba(25, 84, 149, 0.2);
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 120ms ease, opacity 150ms ease;
+  transform: translateZ(0);
 }
