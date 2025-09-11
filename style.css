@@ -2,7 +2,7 @@ body {
   font-family: 'Switzer', sans-serif;
 
   margin: 0;
- background-color: #dadada; 
+ background-color: #101010; 
  color: #464646;
  /* background-color: #0000bd; */
   padding-top: 16px;
@@ -118,4 +118,24 @@ body {
   z-index: 9999;
   transition: transform 120ms ease, opacity 150ms ease;
   transform: translateZ(0);
+}
+
+
+@media (max-width: 800px) {
+  .black-section {
+    padding: 12px;
+    min-height: 60vh;
+  }
+
+  .horiz{
+    flex-direction: column;
+  }
+
+  .cursor {
+    display: none;
+  }
+
+  p .char {
+    transition: transform 0.08s ease;
+  }
 }
