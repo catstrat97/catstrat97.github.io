@@ -11,59 +11,109 @@
     <div class="cursor" id="cursor"></div>
     <h1>S.S</h1>
 
-    <p>I'm a designer and creative coder working at the intersection of generative identities and<br>visual systems. My practice focuses on creating autonomous branding tools that empower workflows and enable internal teams to adapt design systems with flexibility.<br>My work draws from an interest in typography and motion, exploring how movement<br>& code can expand the possibilities of identity design.</p>
+    <p>I'm a designer and creative coder working at the intersection of generative identities &<br>visual systems. My practice focuses on creating autonomous branding tools that empower workflows and enable internal teams to adapt design systems with flexibility.<br>My work draws from an interest in typography and motion, exploring how movement<br>& code can expand the possibilities of identity design.</p>
       
-      <p class="second-paragraph">Currently, I work at Public Knowledge Studios, where I research and develop<br>generative & flexible visual systems.</p>
+      <p class="second-paragraph">Currently, I work at<a href="https://publicknowledge.co/"> Public Knowledge Studio</a>, where I research and develop<br>generative tools & flexible visual systems.</p>
 
-      <div class="small-text red-text">Sharang Sharma<br><span id="current-date"></span><br><span id="current-time"></span></div><hr>
-<div class="small-text red-text">Input/Output</div>
-<hr>
+      <div class="info-section">
+        <div class="small-text red-text">
+          Sharang Sharma<br>
+          <span id="current-date"></span> // <span id="current-time"></span>
+        </div>
+      
+        <div class="contact-links">
+          <a href="https://instagram.com/yourusername" target="_blank">Instagram</a>
+          <a href="https://linkedin.com/in/yourusername" target="_blank">LinkedIn</a>
+          <a href="mailto:your@email.com">Email</a>
+        </div>
+      </div>
+      
+      
+      <div class="input-output-section">
+        <div class="line"></div>
+        <div class="small-text red-text">Input/Output</div>
+        <div class="line"></div>
+      </div>
 
-
-<div class="horiz">
+      <div class="media-section">
+        <div class="horiz">
 
 <div class="vert">
   <video autoplay muted loop>
-    <source src="img/1.mp4" type="video/mp4">
+    <source src="img/col1/1.mp4" type="video/mp4">
   </video>
-  <img src="img/6.jpg" >
-
+  <img src="img/col1/2.jpg" >
   <video autoplay muted loop>
-    <source src="img/11.mp4" type="video/mp4">
+    <source src="img/col1/3.mp4" type="video/mp4">
+  </video>
+  <video autoplay muted loop>
+    <source src="img/col1/4.mp4" type="video/mp4">
+  </video>
+  <img src="img/col1/5.png" >
+</div>
+
+<div class="vert">
+  <img src="img/col2/1.png" alt="W3Schools.com">
+  <img src="img/col2/2.jpg" alt="W3Schools.com">
+  <video autoplay muted loop>
+    <source src="img/col2/3.mp4" type="video/mp4">
+  </video>
+  
+  <video autoplay muted loop>
+    <source src="img/col2/4.mp4" type="video/mp4">
+  </video>
+  <img src="img/col2/5.png" alt="W3Schools.com">
+</div>
+
+
+<div class="vert">
+  <img src="img/col3/1.png" alt="W3Schools.com">
+  <img src="img/col3/2.png" alt="W3Schools.com">
+  <img src="img/col3/3.jpg" alt="W3Schools.com">
+  <video autoplay muted loop>
+    <source src="img/col3/4.mp4" type="video/mp4">
+  </video>
+  <img src="img/col3/5.png" alt="W3Schools.com">
+  <video autoplay muted loop>
+    <source src="img/col3/6.mp4" type="video/mp4">
   </video>
 </div>
 
 <div class="vert">
-  <img src="img/2.png" alt="W3Schools.com">
-  <img src="img/7.jpg" alt="W3Schools.com">
-  <img src="img/THE OOZ - Textured.png" alt="W3Schools.com">
-</div>
-
-<div class="vert">
-  <img src="img/3.png" alt="W3Schools.com">
-  <img src="img/8.jpg" alt="W3Schools.com">
-  <img src="img/THE OOZ - Textured.png" alt="W3Schools.com">
-</div>
-
-<div class="vert">
   <video autoplay muted loop>
-  <source src="img/5.mp4" type="video/mp4">
+  <source src="img/col4/1.mp4" type="video/mp4">
   </video>
   <video autoplay muted loop>
-    <source src="img/8.mp4" type="video/mp4">
+    <source src="img/col4/2.mp4" type="video/mp4">
     </video>
-  <img src="img/THE OOZ - Textured.png" alt="W3Schools.com">
-  <img src="img/THE OOZ - Textured.png" alt="W3Schools.com">
+  <video autoplay muted loop>
+    <source src="img/col4/3.mp4" type="video/mp4">
+    </video>
+    <video autoplay muted loop>
+      <source src="img/col4/4.MP4" type="video/mp4">
+      </video>
+
+      <video autoplay muted loop>
+        <source src="img/col4/5.mp4" type="video/mp4">
+        </video>
+
 </div>
 
 <div class="vert">
-  <img src="img/5.jpg"
-  <img src="img/THE OOZ - Textured.png" alt="W3Schools.com">
-  <img src="img/THE OOZ - Textured.png" alt="W3Schools.com">
+  <img src="img/col5/1.jpg">
+  <img src="img/col5/2.png" alt="W3Schools.com">
+  <video autoplay muted loop>
+    <source src="img/col5/4.mp4" type="video/mp4">
+  </video>
+  <img src="img/col5/3.png" alt="W3Schools.com">
+  <video autoplay muted loop>
+    <source src="img/col5/5.MP4" type="video/mp4">
+  </video>
+  
+ 
 </div>
 
 </div>
-
 
 <br>
 
@@ -116,19 +166,48 @@
         var result = [];
         
         parts.forEach(function(part, index) {
-          // Strip HTML tags and wrap each character
-          var temp = document.createElement('div');
-          temp.innerHTML = part;
-          var text = temp.textContent || temp.innerText || '';
-          
-          var wrapped = Array.from(text).map(function(ch){
-            if (ch === ' ') return '<span class="char" style="width:0.3em">&nbsp;</span>';
-            return '<span class="char">' + ch.replace(/[&<>]/g, function(s){
-              return ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]);
-            }) + '</span>';
-          }).join('');
-          
-          result.push(wrapped);
+          // Check if part contains a link
+          if (part.includes('<a ')) {
+            // Split the part to separate the link from other text
+            var temp = document.createElement('div');
+            temp.innerHTML = part;
+            
+            var linkElements = temp.querySelectorAll('a');
+            var textNodes = [];
+            var currentIndex = 0;
+            
+            // Process each text node and link separately
+            temp.childNodes.forEach(function(node) {
+              if (node.nodeType === 3) { // Text node
+                var text = node.textContent;
+                var wrapped = Array.from(text).map(function(ch){
+                  if (ch === ' ') return '<span class="char" style="width:0.3em">&nbsp;</span>';
+                  return '<span class="char">' + ch.replace(/[&<>]/g, function(s){
+                    return ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]);
+                  }) + '</span>';
+                }).join('');
+                textNodes.push(wrapped);
+              } else if (node.nodeType === 1 && node.tagName === 'A') { // Link element
+                textNodes.push(node.outerHTML);
+              }
+            });
+            
+            result.push(textNodes.join(''));
+          } else {
+            // Strip HTML tags and wrap each character
+            var temp = document.createElement('div');
+            temp.innerHTML = part;
+            var text = temp.textContent || temp.innerText || '';
+            
+            var wrapped = Array.from(text).map(function(ch){
+              if (ch === ' ') return '<span class="char" style="width:0.3em">&nbsp;</span>';
+              return '<span class="char">' + ch.replace(/[&<>]/g, function(s){
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]);
+              }) + '</span>';
+            }).join('');
+            
+            result.push(wrapped);
+          }
           
           // Add <br> between parts (but not after the last part)
           if (index < parts.length - 1) {

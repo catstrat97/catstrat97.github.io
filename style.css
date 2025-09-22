@@ -2,7 +2,7 @@ body {
   font-family: 'Switzer', sans-serif;
 
   margin: 0;
- background-color: #101010; 
+ background-color: #010101; 
  color: #464646;
  /* background-color: #0000bd; */
   padding-top: 16px;
@@ -16,12 +16,27 @@ body {
 p{
   font-weight: 700;
   font-size: 40px;
-  padding-bottom: 48px;
+  padding-bottom: 64px;
 }
 
 .small-text{
   font-size: 40px;
   font-weight: 700;
+}
+
+hr{
+  border: 4px solid #464646;
+  margin-top: 100px;
+  width: 100%;
+}
+
+.line {
+  border-top: 6px solid #464646;
+  width: 100%;
+  height: 400%;
+  margin-bottom: 12px; /* Adjust as needed for spacing between line and text */
+  margin-top: 12px;
+  
 }
 
 .red-text{
@@ -32,6 +47,43 @@ p{
   color: #7c7c7c
 }
 
+.second-paragraph a{
+  color: #464646;
+  text-decoration: underline;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+}
+
+
+.info-section{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 100px;
+  padding-top: 20px;
+}
+
+.contact-links{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contact-links a{
+  color: #464646;
+  text-decoration: none;
+  font-size: 40px;
+  font-weight: 700;
+  transition: color 0.3s ease;
+  line-height: 0.6;
+}
+
+.contact-links a:hover{
+  color: #dcdcdc;
+}
+
 
 
 .horiz{
@@ -39,7 +91,8 @@ p{
   flex-direction: row;
   gap: 12px;
   width: 100%;
-  overflow-x: auto;
+  /* Removed overflow-x: auto; */
+  /* Removed padding: 0 16px; */
 }
 
 .vert{
@@ -71,7 +124,7 @@ video{
 
 hr{
   border: 4px solid #464646;
-  margin-top: 12px;
+  margin-top: 4px;
   width: 100%;
 }
 
@@ -120,6 +173,18 @@ body {
   transform: translateZ(0);
 }
 
+.input-output-section {
+  margin-top: 72px; /* Adjust as needed */
+}
+
+.media-section {
+  background-color: #7c7c7c; /* Grey background */
+  padding: 8px;
+  margin-top: 16px; /* Spacing above the section */
+  display: flex;
+  justify-content: center;
+}
+
 
 @media (max-width: 800px) {
   .black-section {
@@ -138,4 +203,15 @@ body {
   p .char {
     transition: transform 0.08s ease;
   }
+}
+
+footer {
+  text-align: center;
+  padding: 40px 0;
+  color: #7c7c7c;
+  font-size: 16px;
+}
+
+footer p {
+  padding-bottom: 0;
 }
