@@ -1,0 +1,216 @@
+/* ============================================================
+   project.css  —  Styles for project.html
+   Inherits all global tokens from style.css
+   ============================================================ */
+
+/* ── Nav / back link ─────────────────────────────────────── */
+.project-nav {
+    display: flex;
+    align-items: center;
+    padding-bottom: 42px;
+}
+
+.back-link {
+    font-size: 40px;
+    font-weight: 900;
+    color: #464646;
+    text-decoration: none;
+    letter-spacing: -1.2px;
+    transition: color 0.2s ease;
+    line-height: 1;
+}
+
+.back-link:hover {
+    color: #dcdcdc;
+}
+
+/* ── Project header ──────────────────────────────────────── */
+.project-header {
+    padding-bottom: 48px;
+}
+
+.project-title {
+    /* Overrides the global h1 bottom-padding */
+    font-size: 96px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    color: #dcdcdc;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    padding-bottom: 32px;
+    line-height: 0.95;
+    max-width: 100%;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+/* ── Meta row ────────────────────────────────────────────── */
+.project-meta {
+    display: flex;
+    flex-direction: row;
+    gap: 64px;
+    flex-wrap: wrap;
+    padding-bottom: 28px;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.meta-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #464646;
+    line-height: 1;
+}
+
+.meta-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #7c7c7c;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+}
+
+/* ── Tags ────────────────────────────────────────────────── */
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 2px solid #464646;
+    color: #464646;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    border-radius: 0;
+    /* Matches the sharp aesthetic of the rest of the site */
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.tag:hover {
+    border-color: #dcdcdc;
+    color: #dcdcdc;
+}
+
+/* ── Content column ──────────────────────────────────────── */
+/*
+  All blocks are stacked in a single column.
+  Images and videos are full-width.
+  Text blocks are narrower for readability.
+*/
+.project-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* gap between image / video / text blocks */
+    width: 100%;
+    padding-bottom: 80px;
+}
+
+/* ── Individual content blocks ───────────────────────────── */
+.content-block {
+    width: 100%;
+}
+
+.content-block--image img,
+.content-block--video video {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+/* Text blocks are narrower so long paragraphs are easier to read */
+.content-block--text {
+    padding: 0;
+}
+
+.project-body {
+    font-size: 32px;
+    font-weight: 700;
+    color: #7c7c7c;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    max-width: 860px;
+    /* comfortable reading column */
+    padding-bottom: 0;
+    /* override the global p rule */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: manual;
+}
+
+/* ── Scroll-reveal animation ─────────────────────────────── */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Not-found state ─────────────────────────────────────── */
+.project-not-found {
+    padding: 80px 0;
+}
+
+.project-not-found p {
+    font-size: 40px;
+    font-weight: 700;
+    color: #464646;
+    padding-bottom: 16px;
+}
+
+.project-not-found a {
+    font-size: 32px;
+    font-weight: 700;
+    color: #7c7c7c;
+    text-decoration: underline;
+}
+
+/* ── Footer tweaks ───────────────────────────────────────── */
+footer p.project-footer-p {
+    padding-bottom: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 800px) {
+    .project-title {
+        font-size: 56px;
+        letter-spacing: -2px;
+    }
+
+    .project-meta {
+        gap: 32px;
+    }
+
+    .meta-value {
+        font-size: 20px;
+    }
+
+    .back-link {
+        font-size: 28px;
+    }
+
+    .project-body {
+        font-size: 24px;
+    }
+
+    .cursor {
+        display: none;
+    }
+}
