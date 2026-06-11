@@ -678,24 +678,35 @@
     };
   })();
 
-  // word bitmap (offscreen) + sampler
-  var WB_W = 96, WB_H = 28;
+  // word bitmap (offscreen) + sampler — sized tight to the word so its aspect
+  // ratio is preserved when mapped to the screen (otherwise letters get squished).
+  var WB_W = 41, WB_H = 24, WB_FONT = 'bold 20px monospace';
   var wbCanvas = document.createElement('canvas');
-  wbCanvas.width = WB_W; wbCanvas.height = WB_H;
   var wbCtx = wbCanvas.getContext('2d');
   var wbData = new Float32Array(WB_W * WB_H);
   function renderWord(w) {
+    wbCtx.font = WB_FONT;
+    WB_W = Math.ceil(wbCtx.measureText(w).width) + 4;
+    wbCanvas.width = WB_W; wbCanvas.height = WB_H;   // resize clears the context
+    wbCtx.font = WB_FONT;
     wbCtx.fillStyle = '#000'; wbCtx.fillRect(0, 0, WB_W, WB_H);
     wbCtx.fillStyle = '#fff';
-    wbCtx.font = 'bold 24px monospace';
     wbCtx.textAlign = 'center'; wbCtx.textBaseline = 'middle';
     wbCtx.fillText(w, WB_W / 2, WB_H / 2 + 1);
     var img = wbCtx.getImageData(0, 0, WB_W, WB_H).data;
-    for (var i = 0; i < wbData.length; i++) wbData[i] = img[i * 4] / 255;
+    wbData = new Float32Array(WB_W * WB_H);
+    for (var i = 0; i < wbData.length; i++) wbData[i] = img[i * 4] > 100 ? 1 : 0;  // solid
   }
-  function sampleWord(u, v) {
+  function wbGet(px, py) {
+    return (px < 0 || px >= WB_W || py < 0 || py >= WB_H) ? 0 : wbData[px + py * WB_W];
+  }
+  function sampleWord(u, v) {                         // bilinear → smooth dither edges
     if (u < 0 || u >= 1 || v < 0 || v >= 1) return 0;
-    return wbData[((u * WB_W) | 0) + ((v * WB_H) | 0) * WB_W];
+    var x = u * WB_W - 0.5, y = v * WB_H - 0.5;
+    var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    var a = wbGet(xi, yi) + (wbGet(xi + 1, yi) - wbGet(xi, yi)) * xf;
+    var b = wbGet(xi, yi + 1) + (wbGet(xi + 1, yi + 1) - wbGet(xi, yi + 1)) * xf;
+    return a + (b - a) * yf;
   }
 
   // word list + letter scramble
@@ -752,18 +763,21 @@
     // Map the grid onto the word bitmap (word ~fills the screen), domain-warp the
     // sample coords with Perlin noise (anomalous expand/contract), and keep a
     // decaying persistence so the moving shape smears into a full field.
-    var s = now * 0.00045;
-    var sx = 0.55 / cols, sy = 1.5 / rows;
+    var s = now * 0.0003;
+    // Map the word onto the centre of the screen at its real aspect ratio
+    // (~60% width), with only a gentle Perlin wobble so it stays legible.
+    var wW = window.innerWidth * 0.7, wH = wW * (WB_H / WB_W);
+    var ox = (window.innerWidth - wW) / 2, oy = (window.innerHeight - wH) / 2;
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (var c = 0; c < cols; c++) {
       for (var r = 0; r < rows; r++) {
-        var nx = sx * (c - cols * 0.5) + 0.5;
-        var ny = sy * (r - rows * 0.5) + 0.5;
-        var dx = nx + 0.55 * (pnoise(nx * 3 + s, ny * 3) - 0.5);
-        var dy = ny + 1.7 * (pnoise(nx * 3, ny * 3 + s) - 0.5);
+        var u = (c * CELL - ox) / wW;
+        var v = (r * CELL - oy) / wH;
+        var dx = u + 0.05 * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);   // gentle wobble
+        var dy = v + 0.10 * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
         var gIdx = c + r * cols;
         var val = sampleWord(dx, dy);
-        if (val < fieldBuf[gIdx] * 0.94) val = fieldBuf[gIdx] * 0.94;  // persistence trail
+        if (val < fieldBuf[gIdx] * 0.88) val = fieldBuf[gIdx] * 0.88;  // persistence trail
         fieldBuf[gIdx] = val;
         if (val < 0.04) continue;
         var ramp = ((c + r) & 1) ? RAMP_A : RAMP_B;
