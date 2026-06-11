@@ -10,24 +10,6 @@
   var statusEl = document.getElementById('projects-status');
   if (!listEl) return;
 
-  // Hover a project row → scramble its cells once. `lastRow` only changes when
-  // the cursor moves to a *different* row, so the scramble's own DOM mutations
-  // (which fire spurious mouseover/out) can't retrigger it. mouseleave on the
-  // whole list re-arms it (it doesn't fire on internal changes).
-  var lastRow = null;
-  listEl.addEventListener('mouseover', function (e) {
-    if (!window.SiteFX || !window.SiteFX.scrambleIn || !window.SiteFX.ready) return;
-    var row = e.target.closest('.project-row');
-    if (!row || row === lastRow) return;
-    lastRow = row;
-    if (row.dataset.scrambling === '1') return;
-    var cells = row.querySelectorAll('.col-name, .col-role');
-    if (!cells.length) return;
-    row.dataset.scrambling = '1';
-    window.SiteFX.scrambleIn(cells, function () { delete row.dataset.scrambling; });
-  });
-  listEl.addEventListener('mouseleave', function () { lastRow = null; });
-
   var GRID_COLS = window.innerWidth <= 800 ? 1 : 5;
 
   var state = {projects: [], activeTag: null, view: 'list'};

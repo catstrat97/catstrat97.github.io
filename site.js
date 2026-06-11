@@ -569,20 +569,27 @@
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
   resize();
 
-  // drag = raw drag energy (bumped by pointer speed); lit = eased display value.
-  // overTarget/overSmooth = whether the cursor is over text (→ mellow to grey).
+  // drag = raw drag energy (only a very fast, sustained drag builds it up);
+  // lit = eased display value. overTarget/overSmooth = cursor over text (→ grey).
+  // lastActivity drives the idle surfacing (only after ~1 min of no interaction).
   var drag = 0, lit = 0, overTarget = 0, overSmooth = 0, lastX = null, lastY = null, lastT = 0;
+  var lastActivity = performance.now();
   var TEXT_SEL = '.intro, .site-header, .projects, .site-footer';
   document.addEventListener('mousemove', function (e) {
     var now = performance.now();
+    lastActivity = now;
     overTarget = (e.target && e.target.closest && e.target.closest(TEXT_SEL)) ? 1 : 0;
     if (lastX !== null && !overTarget) {
       var d = Math.sqrt((e.clientX - lastX) * (e.clientX - lastX) + (e.clientY - lastY) * (e.clientY - lastY));
       var dt = Math.max(1, now - lastT);
-      drag = Math.min(1, drag + (d / dt) * 0.18);     // speed-proportional
+      var speed = d / dt;                             // px/ms
+      // Only a *very* fast drag adds energy, and it accumulates — so colour
+      // only appears after dragging fast for a bit, not on a quick flick.
+      if (speed > 1.8) drag = Math.min(1, drag + (speed - 1.8) * 0.04);
     }
     lastX = e.clientX; lastY = e.clientY; lastT = now;
   });
+  window.addEventListener('scroll', function () { lastActivity = performance.now(); }, {passive: true});
 
   // Neon duo-tone pairs the colour eases toward (solid, in clusters). Cycles.
   var DUOS = [
@@ -620,14 +627,15 @@
     requestAnimationFrame(draw);
     if (now - last < 66) return;             // ~15fps — it's a calm background
     last = now;
-    drag *= 0.97;                            // target decays slowly
-    lit += (drag - lit) * 0.035;             // slow lerp toward it — eases in AND out
-    overSmooth += (overTarget - overSmooth) * 0.035; // slow grey<->colour over text
+    drag *= 0.97;                            // decays unless you keep fast-dragging
+    lit += (drag - lit) * 0.03;              // slow lerp grey<->colour, in AND out
+    overSmooth += (overTarget - overSmooth) * 0.03;  // slow grey<->colour over text
     var t = now / 1000;
-    // Idle swell: a slow organic rise/fall. Energy = idle baseline + drag, killed
-    // over text. The colour shows even when idle (idle is just a calmer drag).
+    // Idle surfacing: only after ~1 minute of no interaction, then ramps in over
+    // ~8s. Any mouse move/scroll resets the timer, so it stays grey during use.
+    var idleFactor = Math.max(0, Math.min(1, (now - lastActivity - 60000) / 8000));
     var idle = (Math.sin(t * 0.5) + Math.sin(t * 0.23)) * 0.25 + 0.5;  // 0..1
-    var energy = Math.min(1, lit + idle * 0.65) * (1 - overSmooth);
+    var energy = Math.min(1, lit + idle * idleFactor * 0.6) * (1 - overSmooth);
     var waveAmt = energy;
     var thresh = 0.44 - energy * 0.18;       // denser as energy rises
     var k = energy;

@@ -193,7 +193,7 @@ a { color: inherit; text-decoration: none; }
 .intro .intro-current a { text-decoration: underline; text-underline-offset: 4px; }
 
 /* ── Char-flip text interaction ─────────────────────────────── */
-.text-fx .word { display: inline-block; white-space: nowrap; }
+.text-fx .word { display: inline-block; white-space: nowrap; background-color: var(--bg); }
 .text-fx .char {
   display: inline-block;
   transition: transform 0.1s ease;
