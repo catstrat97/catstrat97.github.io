@@ -449,12 +449,15 @@
     el.dataset.originalChar = el.textContent;
     lockBox(el);
     el.style.color = 'white';
+    // ~letter-sized: monospace renders heavier/taller than the proportional text
+    // (esp. the block glyphs), so shrink it to match the character's footprint.
+    var SIZE = '0.62em';
     var step = 0, FAST = 16, BLOCK = 5;
     var iv = setInterval(function () {
       if (step < FAST) {
-        applyGlyph(el, DECODE_SIMPLE[Math.floor(Math.random() * DECODE_SIMPLE.length)], '1em');
+        applyGlyph(el, DECODE_SIMPLE[Math.floor(Math.random() * DECODE_SIMPLE.length)], SIZE);
       } else if (step < FAST + BLOCK) {
-        applyGlyph(el, DECODE_BLOCK[Math.floor(Math.random() * DECODE_BLOCK.length)], '1em');
+        applyGlyph(el, DECODE_BLOCK[Math.floor(Math.random() * DECODE_BLOCK.length)], SIZE);
       } else {
         clearInterval(iv); el._glyphInterval = null;
         unlockBox(el, el.dataset.originalChar);
