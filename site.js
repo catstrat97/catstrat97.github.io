@@ -603,15 +603,17 @@
     [[0, 235, 150], [255, 60, 90]],   // mint / coral-red
   ];
 
-  // Flowing field — moving sines, slow time + mixed spatial frequencies so the
-  // crests read as distributed patches rather than fast-sweeping bands.
+  // Flow field — the coordinates are domain-warped (bent by a second set of
+  // slow sines) before sampling, so the iso-lines curve and swirl and the crests
+  // break into multiple flowing blobs instead of one big region.
   function field(x, y, t) {
+    var wx = x + 8 * Math.sin(y * 0.08 + t * 0.16);
+    var wy = y + 8 * Math.sin(x * 0.07 - t * 0.13);
     return (
-      Math.sin(x * 0.09 + t * 0.13) +
-      Math.sin(y * 0.11 - t * 0.10) +
-      Math.sin((x + y) * 0.05 + t * 0.09) +
-      Math.sin((x - y) * 0.08 - t * 0.07)
-    ) * 0.25;
+      Math.sin(wx * 0.17 + t * 0.10) +
+      Math.sin(wy * 0.19 - t * 0.09) +
+      Math.sin((wx - wy) * 0.13 + t * 0.12)
+    ) / 3;
   }
 
   // Field that carves the screen into solid colour clusters (A vs B) — tuned so
