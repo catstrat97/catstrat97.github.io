@@ -1,0 +1,16 @@
+{
+  "name": "ss-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local tooling: video compression + Sanity content migration. Not deployed.",
+  "scripts": {
+    "compress": "node compress.mjs",
+    "migrate": "node migrate.mjs"
+  },
+  "dependencies": {
+    "@sanity/client": "^6.21.3",
+    "ffmpeg-static": "^5.2.0",
+    "mime": "^4.0.4"
+  }
+}

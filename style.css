@@ -1,181 +1,107 @@
-body {
-  font-family: 'Switzer', sans-serif;
+/* ============================================================
+   style.css — Shared design system (Sharang Sharma portfolio)
+   Used by index.html, project.html, about.html
+   ============================================================ */
 
+/* ── Fonts ──────────────────────────────────────────────────
+   Neue Haas Grotesk Display Pro. The Figma uses "55 Roman"
+   (weight 500) throughout; Medium/Bold are wired for headings.
+──────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Neue Haas Grotesk Display Pro';
+  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neue Haas Grotesk Display Pro';
+  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayRoman.ttf') format('truetype');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neue Haas Grotesk Display Pro';
+  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayMediu.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neue Haas Grotesk Display Pro';
+  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Tokens ─────────────────────────────────────────────────── */
+:root {
+  --bg: #010101;
+  --header: #f6f6f6;
+  --intro-1: #bababa;
+  --intro-2: #e4e4e4;
+  --white: #ffffff;
+  --muted: rgba(255, 255, 255, 0.5);
+  --rule: #d9d9d9;
+  --hover: #989898;
+  --green: #35d07f;
+
+  --fs-base: 20px;
+  --fs-intro: clamp(32px, 4vw, 56px);
+
+  --pad-x: 28px;
+  --max-w: 1728px;
+
+  --font: 'Neue Haas Grotesk Display Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* ── Reset / base ───────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
   margin: 0;
-  background-color: #010101;
-  color: #464646;
-  /* background-color: #0000bd; */
-  padding-top: 16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  line-height: 38px;
-  letter-spacing: -1.2px;
-
-}
-
-p {
-  font-weight: 700;
-  font-size: 40px;
-  padding-bottom: 64px;
-  overflow-wrap: break-word;
-  /* Prevent mid-word breaks if possible */
-  word-break: normal;
-  /* Ensure words break only when necessary */
-  hyphens: manual;
-  line-height: 1.1;
-  /* Increase from default/inherited to prevent overlap */
-  max-width: 100%;
-  /* Ensure it takes full width as requested */
-}
-
-.small-text {
-  font-size: 40px;
-  font-weight: 700;
-}
-
-hr {
-  border: 4px solid #464646;
-  margin-top: 100px;
-  width: 100%;
-}
-
-.line {
-  border-top: 6px solid #464646;
-  width: 100%;
-  height: 400%;
-  margin-bottom: 12px;
-  /* Adjust as needed for spacing between line and text */
-  margin-top: 12px;
-
-}
-
-.red-text {
-  color: #464646;
-}
-
-.second-paragraph {
-  color: #7c7c7c
-}
-
-.second-paragraph a {
-  color: #464646;
-  text-decoration: underline;
-  pointer-events: auto;
-  position: relative;
-  z-index: 10;
-}
-
-
-.info-section {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 100px;
-  padding-top: 20px;
-}
-
-.contact-links {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.contact-links a {
-  color: #464646;
-  text-decoration: none;
-  font-size: 40px;
-  font-weight: 700;
-  transition: color 0.3s ease;
-  line-height: 0.6;
-}
-
-.contact-links a:hover {
-  color: #dcdcdc;
-}
-
-
-
-.horiz {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  width: 100%;
-  /* Removed overflow-x: auto; */
-  /* Removed padding: 0 16px; */
-}
-
-.vert {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 0 0 calc(20% - 9.6px);
-  /* 5 tiles with 12px gaps */
-  min-width: 0;
-}
-
-h1 {
-  letter-spacing: -5%;
-  margin-block-start: 12px;
-  padding-bottom: 42px;
-  margin-block-end: 0;
-  font-weight: 900;
-  font-size: 96px;
-}
-
-img {
-  width: 100%;
-}
-
-video {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-hr {
-  border: 4px solid #464646;
-  margin-top: 4px;
-  width: 100%;
-}
-
-.black-section {
-  background-color: #010101;
-  width: 100%;
-  padding: 20px;
-  min-height: 100vh;
-}
-
-/* mouse trail character flip effect */
-p .word {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-p .char {
-  display: inline-block;
-  transition: transform 0.1s ease;
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
-p .char.flipped {
-  transform: rotateY(180deg);
-}
-
-/* custom circular cursor */
-body {
+  padding: 32px var(--pad-x);
+  background-color: var(--bg);
+  color: var(--header);
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: var(--fs-base);
+  line-height: 1;
+  letter-spacing: 0;
+  overflow-x: hidden;
   cursor: none;
 }
 
+a { color: inherit; text-decoration: none; }
+
+/* Ambient noise-field canvas sits behind the content. */
+.noise-field {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.main-wrapper {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Custom circular cursor ─────────────────────────────────── */
 .cursor {
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 16px;
-  height: 16px;
-  margin-left: -8px;
-  margin-top: -8px;
+  left: 0; top: 0;
+  width: 16px; height: 16px;
+  margin-left: -8px; margin-top: -8px;
   border-radius: 50%;
   background: linear-gradient(45deg, rgb(25, 84, 149), rgb(32, 125, 60), rgb(230, 38, 36));
   box-shadow:
@@ -185,41 +111,202 @@ body {
     0 0 40px rgba(25, 84, 149, 0.2);
   pointer-events: none;
   z-index: 9999;
-  transition: transform 120ms ease, opacity 150ms ease;
   transform: translateZ(0);
+  transition: transform 120ms ease, opacity 150ms ease;
 }
 
-.input-output-section {
-  margin-top: 72px;
-  /* Adjust as needed */
-}
+/* ── Home load-in (staggered scramble reveal) ───────────────────
+   index.html adds `.preload` to <html> before first paint so the page
+   starts black; site.js removes it and decodes the intro text in. */
+.site-header,
+.projects,
+.site-footer { transition: opacity 0.8s ease; }
+.preload .site-header,
+.preload .projects,
+.preload .site-footer,
+.preload .intro { opacity: 0; }
 
-.media-section {
-  background-color: #7c7c7c;
-  /* Grey background */
-  padding: 8px;
-  margin-top: 16px;
-  /* Spacing above the section */
+/* ── Site header ────────────────────────────────────────────── */
+.site-header {
   display: flex;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
 }
 
-/* ── Grid link wrappers ──────────────────────────────────── */
+.site-header .brand { color: var(--header); line-height: 1.75; }
+.site-header .brand a { transition: opacity 0.2s ease; }
+.site-header .brand a:hover { opacity: 0.55; }
+
+.header-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 112px;
+}
+
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 199px;
+  line-height: 1.75;
+}
+
+.main-nav a { color: var(--header); transition: opacity 0.2s ease; }
+.main-nav a:hover { opacity: 0.55; }
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--header);
+  white-space: nowrap;
+  line-height: 1.75;
+}
+
+.status .dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--green);
+  flex: 0 0 auto;
+}
+
+/* ── Intro statement ────────────────────────────────────────── */
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(40px, 6vw, 85px);
+  margin-top: clamp(64px, 9vw, 132px);
+}
+
+.intro p {
+  margin: 0;
+  font-size: var(--fs-intro);
+  line-height: 1.0;
+  font-weight: 500;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.intro .intro-lead { color: var(--intro-1); }
+.intro .intro-current { color: var(--intro-2); }
+.intro .intro-current a { text-decoration: underline; text-underline-offset: 4px; }
+
+/* ── Char-flip text interaction ─────────────────────────────── */
+.text-fx .word { display: inline-block; white-space: nowrap; }
+.text-fx .char {
+  display: inline-block;
+  transition: transform 0.1s ease;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* ── Projects toolbar (Grid/List + filter) ───────────────────
+   Shares the table's 3-column grid so Grid/List sits over the
+   Name column and Filter over the Role column. */
+/* Large intentional whitespace between intro and the list (per Figma). */
+.projects { margin-top: clamp(200px, 33vw, 500px); }
+
+.projects-toolbar {
+  display: grid;
+  grid-template-columns: var(--col-year) var(--col-name) var(--col-role);
+  align-items: center;
+  margin-bottom: clamp(48px, 6vw, 77px);
+}
+
+.view-toggle { display: flex; gap: 12px; }
+.view-toggle button {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: none;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+.view-toggle button[aria-pressed='true'] { color: var(--white); }
+
+.filter { display: flex; flex-wrap: wrap; gap: 8px 32px; align-items: center; }
+.filter .filter-label { color: var(--white); margin-right: 24px; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.filter-chips button {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: none;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+.filter-chips button:hover { color: var(--white); }
+.filter-chips button[aria-pressed='true'] { color: var(--white); }
+
+/* ── Projects: shared column grid (matches Figma 37.5/25/37.5) ── */
+:root { --col-year: 37.5%; --col-name: 25%; --col-role: 37.5%; }
+
+/* ── List (table) view ──────────────────────────────────────── */
+.projects-table {
+  width: 100%;
+  margin-top: 44px;
+  border-top: 1px solid var(--rule);
+}
+
+.table-head,
+.project-row {
+  display: grid;
+  grid-template-columns: var(--col-year) var(--col-name) var(--col-role);
+  align-items: start;
+}
+
+.table-head {
+  color: var(--white);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 4px 0;
+}
+
+.year-group {
+  border-bottom: 1px solid var(--rule);
+  padding: 4px 0;
+}
+.year-group:not(:last-child) { margin-bottom: 44px; }
+
+.projects-status {
+  color: var(--muted);
+  padding: 16px 0;
+}
+
+.project-row {
+  color: var(--white);
+  padding: 4px 0;
+}
+.project-row:hover {
+  background-color: var(--hover);
+  color: var(--bg);
+}
+
+.project-row .col-year { grid-column: 1; }
+.project-row .col-name { grid-column: 2; }
+.project-row .col-role { grid-column: 3; }
+
+/* ── Grid (masonry) view ────────────────────────────────────── */
+.projects-grid { display: none; width: 100%; }
+.projects-grid.is-active { display: flex; gap: 12px; }
+.projects-table.is-hidden { display: none; }
+
+.masonry-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .grid-link {
   display: block;
   position: relative;
-  cursor: pointer;
-  /* restore cursor inside the grid */
-  text-decoration: none;
   overflow: hidden;
 }
-
-/*
-  The ::after overlay sits on top of the image / video and
-  acts as the real click surface. This is critical for <video>
-  elements — without it, the browser treats the click as a
-  play/pause action and never fires the link navigation.
-*/
 .grid-link::after {
   content: '';
   position: absolute;
@@ -227,51 +314,78 @@ body {
   background: rgba(1, 1, 1, 0);
   transition: background 0.25s ease;
   pointer-events: auto;
-  /* ← captures the click, passes it to the <a> */
   z-index: 1;
 }
-
-.grid-link:hover::after {
-  background: rgba(1, 1, 1, 0.25);
-}
+.grid-link:hover::after { background: rgba(1, 1, 1, 0.25); }
 
 .grid-link img,
 .grid-link video {
   display: block;
   width: 100%;
   height: auto;
-  transition: transform 0.35s ease;
   pointer-events: none;
-  /* ← stops img/video from swallowing the click */
 }
 
+/* ── Lazy-load placeholder ──────────────────────────────────── */
+.lazy-media { opacity: 1; transition: opacity 0.35s ease; }
+.loading-placeholder .lazy-media { opacity: 0; }
+.loading-placeholder {
+  min-height: 200px;
+  background: rgba(124, 124, 124, 0.15);
+}
 
+/* ── About: Input/Output divider ────────────────────────────── */
+.io-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: clamp(40px, 6vw, 64px) 0 24px;
+  color: var(--white);
+}
+.io-rule { flex: 1 1 auto; height: 1px; background: var(--rule); }
+.io-label { flex: 0 0 auto; white-space: nowrap; }
+
+/* ── About: media grid ──────────────────────────────────────── */
+.media-grid { display: flex; gap: 12px; width: 100%; }
+.media-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.media-col img,
+.media-col video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.site-footer {
+  display: flex;
+  gap: clamp(48px, 12vw, 209px);
+  margin-top: clamp(80px, 12vw, 160px);
+  color: var(--white);
+}
+.footer-socials { display: flex; flex-direction: column; gap: 2px; }
+.footer-socials a:hover { opacity: 0.55; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 800px) {
-  .black-section {
-    padding: 12px;
-    min-height: 60vh;
-  }
+  body { padding: 20px 16px; }
+  .cursor { display: none; }
+  body { cursor: auto; }
 
-  .horiz {
-    flex-direction: column;
-  }
+  :root { --col-year: 18%; --col-name: 42%; --col-role: 40%; }
 
-  .cursor {
-    display: none;
-  }
+  .header-right { gap: 24px; }
+  .main-nav { max-width: 160px; }
 
-  p .char {
-    transition: transform 0.08s ease;
-  }
-}
+  .projects-toolbar { grid-template-columns: 1fr; gap: 16px; }
 
-footer {
-  text-align: center;
-  padding: 40px 0;
-  color: #7c7c7c;
-  font-size: 16px;
-}
+  .projects-grid.is-active { flex-direction: column; }
+  .media-grid { flex-direction: column; }
 
-footer p {
-  padding-bottom: 0;
+  .text-fx .char { transition: transform 0.08s ease; }
 }

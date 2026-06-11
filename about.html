@@ -2,312 +2,105 @@
 <html lang="en">
 
 <head>
-  <script src="sketch.js"></script>
-  <link rel="stylesheet" type="text/css" href="style.css">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <title>About — Sharang Sharma</title>
+  <meta name="description"
+    content="About Sharang Sharma — graphic designer and creative coder working with generative identities & visual systems." />
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
   <div class="cursor" id="cursor"></div>
-  <h1>About</h1>
 
-  <p>I'm a designer and creative coder working at the intersection of generative identities & visual systems. My
-    practice focuses on creating autonomous branding tools that empower workflows and enable internal teams to adapt
-    design systems with flexibility. My work draws from an interest in typography and motion, exploring how
-    movement & code can expand the possibilities of identity design.</p>
+  <div class="main-wrapper">
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <header class="site-header">
+      <div class="brand"><a href="index.html">sharang sharma</a></div>
+      <div class="header-right">
+        <nav class="main-nav">
+          <a href="index.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="index.html">Projects</a>
+          <a href="#">Tools</a>
+          <a href="mailto:hello@example.com">Contact</a>
+        </nav>
+        <div class="status">
+          <span>New Delhi, IN</span>
+          <span class="dot" aria-hidden="true"></span>
+        </div>
+      </div>
+    </header>
 
-  <p class="second-paragraph">Currently, I work at<a href="https://publicknowledge.co/"> Public Knowledge Studio</a>,
-    where I research and develop generative tools & flexible visual systems.</p>
+    <!-- ── Intro ────────────────────────────────────────────── -->
+    <section class="intro">
+      <p class="intro-lead text-fx">I'm a designer and creative coder working at the intersection of generative
+        identities &amp; visual systems. My practice focuses on creating autonomous branding tools that empower
+        workflows and enable internal teams to adapt design systems with flexibility.</p>
+      <p class="intro-current text-fx">Currently, I work at <a href="https://publicknowledge.co/">Public Knowledge
+          Studio</a>, where I research and develop generative tools &amp; flexible visual systems.</p>
+    </section>
 
-  <div class="info-section">
-    <div class="small-text red-text">
-      Sharang Sharma<br>
-      <span id="current-date"></span> // <span id="current-time"></span>
+    <!-- ── Input / Output divider ───────────────────────────── -->
+    <div class="io-divider">
+      <span class="io-rule" aria-hidden="true"></span>
+      <span class="io-label">Input/Output</span>
+      <span class="io-rule" aria-hidden="true"></span>
     </div>
 
-    <div class="contact-links">
-      <a href="https://instagram.com/yourusername" target="_blank">Instagram</a>
-      <a href="https://linkedin.com/in/yourusername" target="_blank">LinkedIn</a>
-      <a href="mailto:your@email.com">Email</a>
-    </div>
+    <!-- ── Media grid ───────────────────────────────────────── -->
+    <section class="media-grid">
+      <div class="media-col">
+        <video autoplay muted loop playsinline><source src="img/col1/1.mp4" type="video/mp4"></video>
+        <img src="img/col1/2.jpg" alt="">
+        <video autoplay muted loop playsinline><source src="img/col1/3.mp4" type="video/mp4"></video>
+        <video autoplay muted loop playsinline><source src="img/col1/4.mp4" type="video/mp4"></video>
+        <img src="img/col1/5.png" alt="">
+      </div>
+      <div class="media-col">
+        <img src="img/col2/1.png" alt="">
+        <img src="img/col2/2.jpg" alt="">
+        <video autoplay muted loop playsinline><source src="img/col2/3.mp4" type="video/mp4"></video>
+        <video autoplay muted loop playsinline><source src="img/col2/4.mp4" type="video/mp4"></video>
+        <img src="img/col2/5.png" alt="">
+      </div>
+      <div class="media-col">
+        <img src="img/col3/1.png" alt="">
+        <img src="img/col3/2.png" alt="">
+        <img src="img/col3/3.jpg" alt="">
+        <video autoplay muted loop playsinline><source src="img/col3/4.mp4" type="video/mp4"></video>
+        <img src="img/col3/5.png" alt="">
+        <video autoplay muted loop playsinline><source src="img/col3/6.mp4" type="video/mp4"></video>
+      </div>
+      <div class="media-col">
+        <video autoplay muted loop playsinline><source src="img/col4/1.mp4" type="video/mp4"></video>
+        <video autoplay muted loop playsinline><source src="img/col4/2.mp4" type="video/mp4"></video>
+        <video autoplay muted loop playsinline><source src="img/col4/3.mp4" type="video/mp4"></video>
+        <video autoplay muted loop playsinline><source src="img/col4/4.MP4" type="video/mp4"></video>
+        <video autoplay muted loop playsinline><source src="img/col4/5.mp4" type="video/mp4"></video>
+      </div>
+      <div class="media-col">
+        <img src="img/col5/1.jpg" alt="">
+        <img src="img/col5/2.png" alt="">
+        <video autoplay muted loop playsinline><source src="img/col5/4.mp4" type="video/mp4"></video>
+        <img src="img/col5/3.png" alt="">
+        <video autoplay muted loop playsinline><source src="img/col5/5.MP4" type="video/mp4"></video>
+      </div>
+    </section>
+
+    <!-- ── Footer ───────────────────────────────────────────── -->
+    <footer class="site-footer">
+      <span data-clock="datetime"></span>
+      <div class="footer-socials">
+        <a href="https://instagram.com/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://linkedin.com/" target="_blank" rel="noopener">LinkdIn</a>
+        <a href="mailto:hello@example.com">Email</a>
+      </div>
+    </footer>
   </div>
 
-
-  <div class="input-output-section">
-    <div class="line"></div>
-    <div class="small-text red-text">Input/Output</div>
-    <div class="line"></div>
-  </div>
-
-  <div class="media-section">
-    <div class="horiz">
-
-      <div class="vert">
-        <video autoplay muted loop>
-          <source src="img/col1/1.mp4" type="video/mp4">
-        </video>
-        <img src="img/col1/2.jpg">
-        <video autoplay muted loop>
-          <source src="img/col1/3.mp4" type="video/mp4">
-        </video>
-        <video autoplay muted loop>
-          <source src="img/col1/4.mp4" type="video/mp4">
-        </video>
-        <img src="img/col1/5.png">
-      </div>
-
-      <div class="vert">
-        <img src="img/col2/1.png" alt="W3Schools.com">
-        <img src="img/col2/2.jpg" alt="W3Schools.com">
-        <video autoplay muted loop>
-          <source src="img/col2/3.mp4" type="video/mp4">
-        </video>
-
-        <video autoplay muted loop>
-          <source src="img/col2/4.mp4" type="video/mp4">
-        </video>
-        <img src="img/col2/5.png" alt="W3Schools.com">
-      </div>
-
-
-      <div class="vert">
-        <img src="img/col3/1.png" alt="W3Schools.com">
-        <img src="img/col3/2.png" alt="W3Schools.com">
-        <img src="img/col3/3.jpg" alt="W3Schools.com">
-        <video autoplay muted loop>
-          <source src="img/col3/4.mp4" type="video/mp4">
-        </video>
-        <img src="img/col3/5.png" alt="W3Schools.com">
-        <video autoplay muted loop>
-          <source src="img/col3/6.mp4" type="video/mp4">
-        </video>
-      </div>
-
-      <div class="vert">
-        <video autoplay muted loop>
-          <source src="img/col4/1.mp4" type="video/mp4">
-        </video>
-        <video autoplay muted loop>
-          <source src="img/col4/2.mp4" type="video/mp4">
-        </video>
-        <video autoplay muted loop>
-          <source src="img/col4/3.mp4" type="video/mp4">
-        </video>
-        <video autoplay muted loop>
-          <source src="img/col4/4.MP4" type="video/mp4">
-        </video>
-
-        <video autoplay muted loop>
-          <source src="img/col4/5.mp4" type="video/mp4">
-        </video>
-
-      </div>
-
-      <div class="vert">
-        <img src="img/col5/1.jpg">
-        <img src="img/col5/2.png" alt="W3Schools.com">
-        <video autoplay muted loop>
-          <source src="img/col5/4.mp4" type="video/mp4">
-        </video>
-        <img src="img/col5/3.png" alt="W3Schools.com">
-        <video autoplay muted loop>
-          <source src="img/col5/5.MP4" type="video/mp4">
-        </video>
-
-
-      </div>
-
-    </div>
-
-    <br>
-
-
+  <!-- ── Scripts ──────────────────────────────────────────── -->
+  <script src="site.js"></script>
 </body>
-<script>
-  // circular cursor follow
-  (function () {
-    var cursor = document.getElementById('cursor');
-    if (!cursor) return;
-    document.addEventListener('mousemove', function (e) {
-      cursor.style.left = e.clientX + 'px';
-      cursor.style.top = e.clientY + 'px';
-    });
-  })();
-
-  // live date and time
-  (function () {
-    function updateDateTime() {
-      var now = new Date();
-
-      // Format date (e.g., "Dec 15, 2024")
-      var dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-      var dateString = now.toLocaleDateString('en-US', dateOptions);
-
-      // Format time (e.g., "2:30:45 PM")
-      var timeOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
-      var timeString = now.toLocaleTimeString('en-US', timeOptions);
-
-      var dateElement = document.getElementById('current-date');
-      var timeElement = document.getElementById('current-time');
-
-      if (dateElement) dateElement.textContent = dateString;
-      if (timeElement) timeElement.textContent = timeString;
-    }
-
-    // Update immediately and then every second
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-  })();
-
-  // mouse trail character flip effect
-  (function () {
-    // wrap paragraph text into spans for per-character interaction
-    var paragraphs = document.querySelectorAll('p');
-    paragraphs.forEach(function (p) {
-      var original = p.innerHTML;
-      // Split by <br> tags and process each part separately
-      var parts = original.split(/<br\s*\/?>/gi);
-      var result = [];
-
-      parts.forEach(function (part, index) {
-        // Check if part contains a link
-        if (part.includes('<a ')) {
-          // Split the part to separate the link from other text
-          var temp = document.createElement('div');
-          temp.innerHTML = part;
-
-          var linkElements = temp.querySelectorAll('a');
-          var textNodes = [];
-          var currentIndex = 0;
-
-          // Process each text node and link separately
-          temp.childNodes.forEach(function (node) {
-            if (node.nodeType === 3) { // Text node
-              var text = node.textContent;
-              var wrapped = Array.from(text).map(function (ch) {
-                if (ch === ' ') return '<span class="char" style="width:0.3em">&nbsp;</span>';
-                return '<span class="char">' + ch.replace(/[&<>]/g, function (s) {
-                  return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[s]);
-                }) + '</span>';
-              }).join('');
-              textNodes.push(wrapped);
-            } else if (node.nodeType === 1 && node.tagName === 'A') { // Link element
-              textNodes.push(node.outerHTML);
-            }
-          });
-
-          result.push(textNodes.join(''));
-        } else {
-          // Strip HTML tags and wrap each character
-          var temp = document.createElement('div');
-          temp.innerHTML = part;
-          var text = temp.textContent || temp.innerText || '';
-
-          var wrapped = Array.from(text).map(function (ch) {
-            if (ch === ' ') return '<span class="char" style="width:0.3em">&nbsp;</span>';
-            return '<span class="char">' + ch.replace(/[&<>]/g, function (s) {
-              return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[s]);
-            }) + '</span>';
-          }).join('');
-
-          result.push(wrapped);
-        }
-
-        // Add <br> between parts (but not after the last part)
-        if (index < parts.length - 1) {
-          result.push('<br>');
-        }
-      });
-
-      p.innerHTML = result.join('');
-    });
-
-    // mouse trail effect - only for paragraphs with elliptical radius
-    var flippedChars = [];
-    var returnTimeout;
-
-    paragraphs.forEach(function (paragraph) {
-      paragraph.addEventListener('mousemove', function (e) {
-        var rect = paragraph.getBoundingClientRect();
-        var mouseX = e.clientX - rect.left;
-        var mouseY = e.clientY - rect.top;
-
-        // elliptical radius (width: 300px, height: 150px)
-        var ellipseWidth = 300;
-        var ellipseHeight = 300;
-
-        // get all character elements in this paragraph
-        var chars = paragraph.querySelectorAll('.char');
-
-        var charsInRadius = [];
-
-        chars.forEach(function (char) {
-          var charRect = char.getBoundingClientRect();
-          var charX = charRect.left + charRect.width / 2 - rect.left;
-          var charY = charRect.top + charRect.height / 2 - rect.top;
-
-          // calculate distance from mouse to character (elliptical)
-          var dx = (charX - mouseX) / (ellipseWidth / 2);
-          var dy = (charY - mouseY) / (ellipseHeight / 2);
-          var distance = dx * dx + dy * dy;
-
-          // if character is within elliptical radius
-          if (distance <= 1) {
-            charsInRadius.push({
-              element: char,
-              distance: distance
-            });
-          }
-        });
-
-        // sort by distance (closest to mouse first)
-        charsInRadius.sort(function (a, b) {
-          return a.distance - b.distance;
-        });
-
-        // RGB color array for flipped characters
-        var colors = [
-          'rgb(25, 84, 149)',     // blue
-          'rgb(32, 125, 60)',     // green
-          'rgb(230, 38, 36)',     // red
-          // 'rgb(246, 96, 30)',     // red
-
-
-        ];
-
-        // stagger the flip with delays
-        charsInRadius.forEach(function (charData, index) {
-          setTimeout(function () {
-            charData.element.classList.add('flipped');
-            // apply random color from the array
-            var randomColor = colors[Math.floor(Math.random() * colors.length)];
-            charData.element.style.color = randomColor;
-            if (flippedChars.indexOf(charData.element) === -1) {
-              flippedChars.push(charData.element);
-            }
-          }, index * 10); // 20ms delay between each character
-        });
-
-        // clear existing timeout
-        if (returnTimeout) {
-          clearTimeout(returnTimeout);
-        }
-
-        // set new timeout to return characters to original position with stagger
-        returnTimeout = setTimeout(function () {
-          flippedChars.forEach(function (char, index) {
-            setTimeout(function () {
-              char.classList.remove('flipped');
-              char.style.color = ''; // reset color to original
-            }, index * 30); // 30ms stagger between each character return
-          });
-          flippedChars = [];
-        }, 800); // 800ms delay before starting to return
-      });
-    });
-  })();
-</script>
 
 </html>

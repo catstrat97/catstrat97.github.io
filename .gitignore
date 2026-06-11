@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+scripts/node_modules/
+studio/node_modules/
+
+# Sanity Studio build output
+studio/dist/
+studio/.sanity/
+
+# Local build artifacts / migration sources (media is served from Sanity)
+img-compressed/
+
+# Env / secrets
+.env
+.env.*
+scripts/.env
+
+# OS
+.DS_Store
+**/.DS_Store

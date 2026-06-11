@@ -2,197 +2,79 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- SEO: title and description are overwritten by JS once the project loads -->
-    <title>Project — S.S</title>
-    <meta name="description" content="Project detail — Sharang Sharma, designer & creative coder.">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" type="text/css" href="project.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Title is overwritten by detail.js once the project loads -->
+  <title>Project — Sharang Sharma</title>
+  <meta name="description" content="Project detail — Sharang Sharma, designer & creative coder." />
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="project.css">
 </head>
 
 <body>
-    <!-- ── Custom cursor ─────────────────────────────── -->
-    <div class="cursor" id="cursor"></div>
+  <div class="cursor" id="cursor"></div>
 
-    <!-- ── Nav / back link ───────────────────────────── -->
-    <nav class="project-nav">
-        <a href="index.html" class="back-link" id="back-link">← S.S</a>
-    </nav>
-
-    <!-- ── Project header ────────────────────────────── -->
-    <header class="project-header">
-        <h1 id="project-title" class="project-title">—</h1>
-
-        <div class="project-meta">
-            <div class="meta-item">
-                <span class="meta-label">Year</span>
-                <span class="meta-value" id="project-year">—</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Role</span>
-                <span class="meta-value" id="project-role">—</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Client</span>
-                <span class="meta-value" id="project-client">—</span>
-            </div>
+  <div class="main-wrapper">
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <header class="site-header">
+      <div class="brand"><a href="index.html">sharang sharma</a></div>
+      <div class="header-right">
+        <nav class="main-nav">
+          <a href="index.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="index.html">Projects</a>
+          <a href="#">Tools</a>
+          <a href="mailto:hello@example.com">Contact</a>
+        </nav>
+        <div class="status">
+          <span>New Delhi, IN</span>
+          <span class="dot" aria-hidden="true"></span>
         </div>
-
-        <!-- Tags -->
-        <div class="project-tags" id="project-tags"></div>
+      </div>
     </header>
 
-    <!-- ── Divider ───────────────────────────────────── -->
-    <div class="input-output-section" style="margin-top:0; margin-bottom:24px;">
-        <div class="line"></div>
-    </div>
+    <!-- ── Project ──────────────────────────────────────────── -->
+    <article class="project" id="project" hidden>
+      <header class="project-head">
+        <h1 class="project-title" id="project-title"></h1>
+        <dl class="project-meta">
+          <div class="meta-item">
+            <dt>Year</dt>
+            <dd id="project-year"></dd>
+          </div>
+          <div class="meta-item">
+            <dt>Role</dt>
+            <dd id="project-role"></dd>
+          </div>
+          <div class="meta-item" id="project-client-item">
+            <dt>Client</dt>
+            <dd id="project-client"></dd>
+          </div>
+        </dl>
+      </header>
 
-    <!-- ── Content column ───────────────────────────── -->
-    <!--
-    All images, videos, and text blocks are injected here
-    by the script below. They appear in the order defined
-    in projects.js › content[].
-  -->
-    <main class="project-content" id="project-content">
-        <!-- Dynamically populated -->
-    </main>
+      <div class="project-description" id="project-description"></div>
+      <div class="project-tags" id="project-tags"></div>
+      <div class="project-media" id="project-media"></div>
+    </article>
 
-    <!-- ── 404 fallback (hidden by default) ─────────── -->
-    <div class="project-not-found" id="project-not-found" style="display:none;">
-        <p>Project not found.</p>
-        <a href="index.html">← Back to index</a>
-    </div>
+    <div class="projects-status" id="project-status"></div>
 
-    <!-- ── Footer ────────────────────────────────────── -->
-    <footer>
-        <p>Sharang Sharma &mdash; <span id="footer-year"></span></p>
+    <!-- ── Footer ───────────────────────────────────────────── -->
+    <footer class="site-footer">
+      <span data-clock="datetime"></span>
+      <div class="footer-socials">
+        <a href="https://instagram.com/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://linkedin.com/" target="_blank" rel="noopener">LinkdIn</a>
+        <a href="mailto:hello@example.com">Email</a>
+      </div>
     </footer>
+  </div>
 
-    <!-- ── Scripts ───────────────────────────────────── -->
-    <script src="projects.js"></script>
-    <script>
-        /* ────────────────────────────────────────────────────────
-           1. Circular cursor
-        ──────────────────────────────────────────────────────── */
-        (function () {
-            var cursor = document.getElementById('cursor');
-            if (!cursor) return;
-            document.addEventListener('mousemove', function (e) {
-                cursor.style.left = e.clientX + 'px';
-                cursor.style.top = e.clientY + 'px';
-            });
-        })();
-
-        /* ────────────────────────────────────────────────────────
-           2. Footer year
-        ──────────────────────────────────────────────────────── */
-        (function () {
-            var el = document.getElementById('footer-year');
-            if (el) el.textContent = new Date().getFullYear();
-        })();
-
-        /* ────────────────────────────────────────────────────────
-           3. Load project from URL param  ?id=project-key
-        ──────────────────────────────────────────────────────── */
-        (function () {
-            var params = new URLSearchParams(window.location.search);
-            var id = params.get('id');
-            var project = id && projects[id];
-
-            if (!project) {
-                document.getElementById('project-not-found').style.display = 'block';
-                document.getElementById('project-header') &&
-                    (document.getElementById('project-header').style.display = 'none');
-                return;
-            }
-
-            /* ── Meta / SEO ──────────────────────────────── */
-            document.title = project.title + ' — S.S';
-
-            /* ── Header fields ───────────────────────────── */
-            document.getElementById('project-title').textContent = project.title;
-            document.getElementById('project-year').textContent = project.year || '—';
-            document.getElementById('project-role').textContent = project.role || '—';
-            document.getElementById('project-client').textContent = project.client || '—';
-
-            /* ── Tags ────────────────────────────────────── */
-            var tagsEl = document.getElementById('project-tags');
-            if (project.tags && project.tags.length) {
-                project.tags.forEach(function (tag) {
-                    var span = document.createElement('span');
-                    span.className = 'tag';
-                    span.textContent = tag;
-                    tagsEl.appendChild(span);
-                });
-            }
-
-            /* ── Content blocks ──────────────────────────── */
-            var contentEl = document.getElementById('project-content');
-            var content = project.content || [];
-
-            content.forEach(function (block) {
-                var el;
-
-                if (block.type === 'image') {
-                    /* ─── Image block ─── */
-                    el = document.createElement('div');
-                    el.className = 'content-block content-block--image';
-                    var img = document.createElement('img');
-                    img.src = block.src;
-                    img.alt = block.alt || '';
-                    el.appendChild(img);
-
-                } else if (block.type === 'video') {
-                    /* ─── Video block ─── */
-                    el = document.createElement('div');
-                    el.className = 'content-block content-block--video';
-                    var video = document.createElement('video');
-                    video.autoplay = true;
-                    video.muted = true;
-                    video.loop = true;
-                    video.setAttribute('playsinline', '');
-                    if (block.poster) video.poster = block.poster;
-                    var source = document.createElement('source');
-                    source.src = block.src;
-                    source.type = 'video/mp4';
-                    video.appendChild(source);
-                    el.appendChild(video);
-
-                } else if (block.type === 'text') {
-                    /* ─── Text block ─── */
-                    el = document.createElement('div');
-                    el.className = 'content-block content-block--text';
-                    var p = document.createElement('p');
-                    p.className = 'project-body';
-                    p.textContent = block.body;
-                    el.appendChild(p);
-
-                } else {
-                    return; // unknown block type, skip
-                }
-
-                /* Reveal animation hook */
-                el.classList.add('reveal');
-                contentEl.appendChild(el);
-            });
-
-            /* ── Scroll-reveal (IntersectionObserver) ─────── */
-            var observer = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('revealed');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.08 });
-
-            document.querySelectorAll('.reveal').forEach(function (el) {
-                observer.observe(el);
-            });
-
-        })();
-    </script>
+  <!-- ── Scripts ──────────────────────────────────────────── -->
+  <script src="sanity.js"></script>
+  <script src="detail.js"></script>
+  <script src="site.js"></script>
 </body>
 
 </html>

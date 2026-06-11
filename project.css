@@ -1,216 +1,117 @@
 /* ============================================================
-   project.css  —  Styles for project.html
-   Inherits all global tokens from style.css
+   project.css — Styles for project.html
+   Inherits the design system + tokens from style.css.
    ============================================================ */
 
-/* ── Nav / back link ─────────────────────────────────────── */
-.project-nav {
-    display: flex;
-    align-items: center;
-    padding-bottom: 42px;
-}
-
-.back-link {
-    font-size: 40px;
-    font-weight: 900;
-    color: #464646;
-    text-decoration: none;
-    letter-spacing: -1.2px;
-    transition: color 0.2s ease;
-    line-height: 1;
-}
-
-.back-link:hover {
-    color: #dcdcdc;
-}
-
-/* ── Project header ──────────────────────────────────────── */
-.project-header {
-    padding-bottom: 48px;
+/* ── Project head (title + meta) ────────────────────────────── */
+.project-head {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(40px, 6vw, 72px);
+  margin-top: clamp(64px, 9vw, 120px);
+  margin-bottom: clamp(40px, 6vw, 64px);
 }
 
 .project-title {
-    /* Overrides the global h1 bottom-padding */
-    font-size: 96px;
-    font-weight: 900;
-    letter-spacing: -3px;
-    color: #dcdcdc;
-    margin-block-start: 0;
-    margin-block-end: 0;
-    padding-bottom: 32px;
-    line-height: 0.95;
-    max-width: 100%;
-    word-break: normal;
-    overflow-wrap: break-word;
+  margin: 0;
+  font-size: var(--fs-intro);
+  line-height: 1.0;
+  font-weight: 600;
+  color: var(--white);
+  word-break: break-word;
 }
 
-/* ── Meta row ────────────────────────────────────────────── */
+/* Meta sits on the same 3-column grid as the home table. */
 .project-meta {
-    display: flex;
-    flex-direction: row;
-    gap: 64px;
-    flex-wrap: wrap;
-    padding-bottom: 28px;
+  display: grid;
+  grid-template-columns: var(--col-year) var(--col-name) var(--col-role);
+  align-items: start;
+  margin: 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 12px 0;
 }
 
-.meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+.meta-item { display: flex; flex-direction: column; gap: 8px; }
+.meta-item dt { color: var(--muted); }
+.meta-item dd { margin: 0; color: var(--white); }
 
-.meta-label {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #464646;
-    line-height: 1;
-}
-
-.meta-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #7c7c7c;
-    letter-spacing: -0.5px;
-    line-height: 1.1;
-}
-
-/* ── Tags ────────────────────────────────────────────────── */
-.project-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.tag {
-    display: inline-block;
-    padding: 6px 14px;
-    border: 2px solid #464646;
-    color: #464646;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    line-height: 1;
-    border-radius: 0;
-    /* Matches the sharp aesthetic of the rest of the site */
-    transition: border-color 0.2s ease, color 0.2s ease;
-}
-
-.tag:hover {
-    border-color: #dcdcdc;
-    color: #dcdcdc;
-}
-
-/* ── Content column ──────────────────────────────────────── */
-/*
-  All blocks are stacked in a single column.
-  Images and videos are full-width.
-  Text blocks are narrower for readability.
-*/
-.project-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    /* gap between image / video / text blocks */
-    width: 100%;
-    padding-bottom: 80px;
-}
-
-/* ── Individual content blocks ───────────────────────────── */
-.content-block {
-    width: 100%;
-}
-
-.content-block--image img,
-.content-block--video video {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
-}
-
-/* Text blocks are narrower so long paragraphs are easier to read */
-.content-block--text {
-    padding: 0;
+/* ── Description ────────────────────────────────────────────── */
+.project-description {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3vw, 40px);
+  max-width: 72%;
+  margin-bottom: clamp(40px, 6vw, 64px);
 }
 
 .project-body {
-    font-size: 32px;
-    font-weight: 700;
-    color: #7c7c7c;
-    line-height: 1.1;
-    letter-spacing: -1px;
-    max-width: 860px;
-    /* comfortable reading column */
-    padding-bottom: 0;
-    /* override the global p rule */
-    word-break: normal;
-    overflow-wrap: break-word;
-    hyphens: manual;
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.15;
+  font-weight: 500;
+  color: var(--intro-1);
+  word-break: break-word;
 }
 
-/* ── Scroll-reveal animation ─────────────────────────────── */
+/* ── Tags ───────────────────────────────────────────────────── */
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: clamp(48px, 7vw, 80px);
+}
+
+.tag {
+  padding: 6px 14px;
+  border: 1px solid var(--rule);
+  color: var(--white);
+  font-size: 14px;
+  line-height: 1;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.tag:hover { color: var(--muted); border-color: var(--muted); }
+
+/* ── Media column ───────────────────────────────────────────── */
+.project-media {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.media-lead { width: 100%; }
+
+.media-masonry { display: flex; gap: 12px; width: 100%; }
+.media-masonry .masonry-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.media-block { position: relative; overflow: hidden; width: 100%; }
+.media-block img,
+.media-block video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Scroll reveal ──────────────────────────────────────────── */
 .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
+.reveal.revealed { opacity: 1; transform: translateY(0); }
 
-.reveal.revealed {
-    opacity: 1;
-    transform: translateY(0);
-}
+/* ── Status (loading / not-found) ───────────────────────────── */
+.projects-status { color: var(--muted); padding: 16px 0; }
 
-/* ── Not-found state ─────────────────────────────────────── */
-.project-not-found {
-    padding: 80px 0;
-}
-
-.project-not-found p {
-    font-size: 40px;
-    font-weight: 700;
-    color: #464646;
-    padding-bottom: 16px;
-}
-
-.project-not-found a {
-    font-size: 32px;
-    font-weight: 700;
-    color: #7c7c7c;
-    text-decoration: underline;
-}
-
-/* ── Footer tweaks ───────────────────────────────────────── */
-footer p.project-footer-p {
-    padding-bottom: 0;
-}
-
-/* ── Responsive ──────────────────────────────────────────── */
+/* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 800px) {
-    .project-title {
-        font-size: 56px;
-        letter-spacing: -2px;
-    }
-
-    .project-meta {
-        gap: 32px;
-    }
-
-    .meta-value {
-        font-size: 20px;
-    }
-
-    .back-link {
-        font-size: 28px;
-    }
-
-    .project-body {
-        font-size: 24px;
-    }
-
-    .cursor {
-        display: none;
-    }
+  .project-meta { grid-template-columns: 1fr 1fr; gap: 24px 16px; }
+  .project-description { max-width: 100%; }
+  .media-masonry { flex-direction: column; }
 }
