@@ -550,7 +550,7 @@
   if (!ctx) return;
 
   var GLYPHS = '0123456789+-<>=/.,:;*'.split('');
-  var CELL = 15;
+  var CELL = 24;
   var cols = 0, rows = 0;
 
   function resize() {
@@ -560,7 +560,7 @@
     canvas.height = window.innerHeight;
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
-    ctx.font = '11px monospace';
+    ctx.font = '15px monospace';
     ctx.textBaseline = 'top';
     cols = Math.ceil(window.innerWidth / CELL);
     rows = Math.ceil(window.innerHeight / CELL);
