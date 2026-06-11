@@ -157,8 +157,8 @@
         c.style.transform = ''; c.style.color = ''; c.style.fontFamily = '';
         c.style.fontSize = ''; c.style.display = ''; c.style.backgroundColor = '';
         c.style.borderRadius = ''; c.style.textShadow = '';
-        c.style.width = ''; c.style.overflow = ''; c.style.transformOrigin = '';
-        c.style.whiteSpace = '';
+        c.style.width = ''; c.style.height = ''; c.style.overflow = '';
+        c.style.transformOrigin = ''; c.style.whiteSpace = ''; c.style.textAlign = '';
         delete c.dataset.boxw; delete c.dataset.gunit;
         if (c._glyphInterval) {
           clearInterval(c._glyphInterval); c._glyphInterval = null;
@@ -386,8 +386,8 @@
           setTimeout(function () {
             char.style.transform = ''; char.style.color = '';
             char.style.fontFamily = ''; char.style.fontSize = ''; char.style.display = '';
-            char.style.width = ''; char.style.overflow = ''; char.style.transformOrigin = '';
-            char.style.whiteSpace = '';
+            char.style.width = ''; char.style.height = ''; char.style.overflow = '';
+            char.style.transformOrigin = ''; char.style.whiteSpace = ''; char.style.textAlign = '';
             delete char.dataset.boxw; delete char.dataset.gunit;
             if (char._glyphInterval) {
               clearInterval(char._glyphInterval); char._glyphInterval = null;
@@ -421,8 +421,10 @@
   function repeatGlyph(g, n) { return new Array(n + 1).join(g); }
 
   function lockBox(el) {
-    el.style.width = el.offsetWidth + 'px';   // freeze the box → no tracking shift
-    el.style.display = 'inline-block';
+    var w = el.offsetWidth, h = el.offsetHeight;
+    el.style.width = w + 'px';                 // freeze the box (both axes) so the
+    el.style.height = h + 'px';                // smaller scramble glyph can't shrink
+    el.style.display = 'inline-block';         // the cell and shift the layout
     el.style.textAlign = 'center';
     el.style.overflow = 'hidden';
     el.style.whiteSpace = 'nowrap';
@@ -434,8 +436,8 @@
   }
   function unlockBox(el, real) {
     el.style.fontFamily = ''; el.style.fontSize = ''; el.style.width = '';
-    el.style.display = ''; el.style.textAlign = ''; el.style.overflow = '';
-    el.style.whiteSpace = '';
+    el.style.height = ''; el.style.display = ''; el.style.textAlign = '';
+    el.style.overflow = ''; el.style.whiteSpace = '';
     if (real != null) el.textContent = real;
   }
 
