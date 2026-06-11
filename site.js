@@ -651,6 +651,18 @@
       Math.sin((x + y) * 0.1 + t * 0.22);
   }
 
+  // Density ramp (sparse → dense): the flow field's "height" picks the glyph, so
+  // it reads as an undulating ASCII wave rather than random numbers.
+  var RAMP = '·.,:-;~=+*oxX#%▒▓█'.split('');
+  // A slow roaming field marks "scramble patches" where cells flicker through
+  // code-like glyphs (the voxel-scramble), drifting like a wave across the field.
+  var SCRAMBLE = 'ABCXYZ0123456789abcxyz+-='.split('');
+  function scrambleField(x, y, t) {
+    return Math.sin(x * 0.06 + t * 0.22) +
+      Math.sin(y * 0.08 - t * 0.18) +
+      Math.sin((x - y) * 0.05 + t * 0.14);
+  }
+
   var last = 0, startTime = 0;
   function draw(now) {
     requestAnimationFrame(draw);
@@ -676,26 +688,28 @@
     if (energy > 0.15) colored = true;
     else if (energy < 0.03 && colored) { pairIndex = (pairIndex + 1) % DUOS.length; colored = false; }
     var A = DUOS[pairIndex][0], B = DUOS[pairIndex][1];
+    var bw = 1 + waveAmt * 0.5 * Math.sin(t * 1.8);  // gentle global brightness pulse
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (var c = 0; c < cols; c++) {
       for (var r = 0; r < rows; r++) {
-        var n = field(c, r, t);
-        if (n < thresh) continue;
-        var b = (n - thresh) / (1 - thresh);          // 0..1 within a crest
-        var grey = 138 + b * 28;                       // ~#989898, matches list hover
-        // Travelling brightness wave — bigger/more prominent as energy rises.
-        var bw = 1 + waveAmt * 0.9 * Math.sin(t * 2.4 - (c + r) * 0.33);
-        var organic = (n + 1) * 4 + t * 2;
-        var wave = t * 8 - (c + r) * 0.4;
-        var gi = Math.floor(organic * (1 - waveAmt) + wave * waveAmt) % GLYPHS.length;
-        if (gi < 0) gi += GLYPHS.length;
+        var nn = (field(c, r, t) + 1) * 0.5;          // 0..1 height
+        if (nn < 0.22) continue;                       // troughs stay blank → sparse
+        var dens = (nn - 0.22) / 0.78;                 // 0..1
+        var ch, grey;
+        if (scrambleField(c, r, t) > 2.25) {           // rare roaming scramble patch
+          ch = SCRAMBLE[(Math.floor(t * 7) + c * 5 + r * 11) % SCRAMBLE.length];
+          grey = 175;                                  // a touch brighter (active)
+        } else {                                       // density-ramp wave
+          ch = RAMP[Math.min(RAMP.length - 1, Math.floor(dens * RAMP.length))];
+          grey = 118 + dens * 52;                      // denser → brighter (~#989898)
+        }
         // Colour: lerp grey → the SOLID duo-tone for this cell's cluster.
         var col = clusterField(c, r, t) > 0 ? A : B;
         ctx.fillStyle = 'rgb(' +
           Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[0] * k) * bw * introFade))) + ',' +
           Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[1] * k) * bw * introFade))) + ',' +
           Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[2] * k) * bw * introFade))) + ')';
-        ctx.fillText(GLYPHS[gi], c * CELL, r * CELL);
+        ctx.fillText(ch, c * CELL, r * CELL);
       }
     }
   }
