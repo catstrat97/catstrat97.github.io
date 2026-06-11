@@ -593,6 +593,7 @@
     ctx.textBaseline = 'top';
     cols = Math.ceil(window.innerWidth / CELL);
     rows = Math.ceil(window.innerHeight / CELL);
+    fieldBuf = new Float32Array(cols * rows);
   }
   var rt;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
@@ -651,17 +652,70 @@
       Math.sin((x + y) * 0.1 + t * 0.22);
   }
 
-  // Density ramp (sparse → dense): the flow field's "height" picks the glyph, so
-  // it reads as an undulating ASCII wave rather than random numbers.
-  var RAMP = '·.,:-;~=+*oxX#%▒▓█'.split('');
-  // A slow roaming field marks "scramble patches" where cells flicker through
-  // code-like glyphs (the voxel-scramble), drifting like a wave across the field.
-  var SCRAMBLE = 'ABCXYZ0123456789abcxyz+-='.split('');
-  function scrambleField(x, y, t) {
-    return Math.sin(x * 0.06 + t * 0.22) +
-      Math.sin(y * 0.08 - t * 0.18) +
-      Math.sin((x - y) * 0.05 + t * 0.14);
+  // ── Procedural word field ──────────────────────────────────────────────
+  // A 3-letter word is drawn to a tiny bitmap, then sampled across the grid
+  // through a Perlin domain-warp (anomalous expand/contract). A persistence
+  // buffer smears the moving shape into a full-screen field, which is dithered
+  // into two alternating ASCII ramps. The word's letters scramble to the next
+  // word every few seconds.
+  var RAMP_A = ' .·•-+=:;*ABC0123!*'.split('');   // checkerboard dither — ramp A
+  var RAMP_B = ' ·-•~+:*abcXYZ*'.split('');        // ramp B
+
+  // value-noise (Perlin-ish), returns ~0..1
+  var pnoise = (function () {
+    var grad = new Array(256), perm = new Array(512);
+    for (var a = 0; a < 256; a++) { grad[a] = Math.random(); perm[a] = a; }
+    for (var b = 255; b > 0; b--) { var j = (Math.random() * (b + 1)) | 0, s = perm[b]; perm[b] = perm[j]; perm[j] = s; }
+    for (var c2 = 0; c2 < 256; c2++) perm[c2 + 256] = perm[c2];
+    function sm(t) { return t * t * (3 - 2 * t); }
+    return function (x, y) {
+      var xi = Math.floor(x) & 255, yi = Math.floor(y) & 255;
+      var xf = x - Math.floor(x), yf = y - Math.floor(y);
+      var aa = grad[(perm[perm[xi] + yi]) & 255], ba = grad[(perm[perm[xi + 1] + yi]) & 255];
+      var ab = grad[(perm[perm[xi] + yi + 1]) & 255], bb = grad[(perm[perm[xi + 1] + yi + 1]) & 255];
+      var u = sm(xf), v = sm(yf), tp = aa + (ba - aa) * u, bt = ab + (bb - ab) * u;
+      return tp + (bt - tp) * v;
+    };
+  })();
+
+  // word bitmap (offscreen) + sampler
+  var WB_W = 96, WB_H = 28;
+  var wbCanvas = document.createElement('canvas');
+  wbCanvas.width = WB_W; wbCanvas.height = WB_H;
+  var wbCtx = wbCanvas.getContext('2d');
+  var wbData = new Float32Array(WB_W * WB_H);
+  function renderWord(w) {
+    wbCtx.fillStyle = '#000'; wbCtx.fillRect(0, 0, WB_W, WB_H);
+    wbCtx.fillStyle = '#fff';
+    wbCtx.font = 'bold 24px monospace';
+    wbCtx.textAlign = 'center'; wbCtx.textBaseline = 'middle';
+    wbCtx.fillText(w, WB_W / 2, WB_H / 2 + 1);
+    var img = wbCtx.getImageData(0, 0, WB_W, WB_H).data;
+    for (var i = 0; i < wbData.length; i++) wbData[i] = img[i * 4] / 255;
   }
+  function sampleWord(u, v) {
+    if (u < 0 || u >= 1 || v < 0 || v >= 1) return 0;
+    return wbData[((u * WB_W) | 0) + ((v * WB_H) | 0) * WB_W];
+  }
+
+  // word list + letter scramble
+  var WORDS = ['ert', 'dfg', 'cvb', 'sun', 'sky', 'art', 'box', 'fox', 'cat', 'dog',
+    'run', 'fly', 'joy', 'raw', 'mix', 'web', 'dev', 'new', 'pix', 'bit', 'rad', 'lab',
+    'one', 'two', 'log', 'map', 'ray', 'hue', 'dot', 'wave'];
+  var ALPHA = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var curIdx = [5, 18, 20], tgtIdx = [5, 18, 20], stg = [0, 0, 0], wordPtr = 0;
+  function pickWord(w) { for (var i = 0; i < 3; i++) { tgtIdx[i] = Math.max(0, ALPHA.indexOf((w[i] || ' ').toUpperCase())); stg[i] = i * 5; } }
+  function stepWord() {
+    var ch = false;
+    for (var i = 0; i < 3; i++) {
+      if (stg[i] > 0) { stg[i]--; continue; }
+      if (curIdx[i] !== tgtIdx[i]) { curIdx[i] = (curIdx[i] + 1) % ALPHA.length; ch = true; }
+    }
+    if (ch) renderWord(ALPHA[curIdx[0]] + ALPHA[curIdx[1]] + ALPHA[curIdx[2]]);
+  }
+  renderWord('ERT');
+
+  var fieldBuf, frameN = 0;          // persistence buffer (smears the warped word)
 
   var last = 0, startTime = 0;
   function draw(now) {
@@ -689,21 +743,33 @@
     else if (energy < 0.03 && colored) { pairIndex = (pairIndex + 1) % DUOS.length; colored = false; }
     var A = DUOS[pairIndex][0], B = DUOS[pairIndex][1];
     var bw = 1 + waveAmt * 0.5 * Math.sin(t * 1.8);  // gentle global brightness pulse
+
+    // word scramble timing: pick a new word periodically, step letters toward it
+    frameN++;
+    if (frameN % 90 === 0) { pickWord(WORDS[wordPtr]); wordPtr = (wordPtr + 1) % WORDS.length; }
+    if (frameN % 2 === 0) stepWord();
+
+    // Map the grid onto the word bitmap (word ~fills the screen), domain-warp the
+    // sample coords with Perlin noise (anomalous expand/contract), and keep a
+    // decaying persistence so the moving shape smears into a full field.
+    var s = now * 0.00045;
+    var sx = 0.55 / cols, sy = 1.5 / rows;
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (var c = 0; c < cols; c++) {
       for (var r = 0; r < rows; r++) {
-        var nn = (field(c, r, t) + 1) * 0.5;          // 0..1 height
-        if (nn < 0.22) continue;                       // troughs stay blank → sparse
-        var dens = (nn - 0.22) / 0.78;                 // 0..1
-        var ch, grey;
-        if (scrambleField(c, r, t) > 2.25) {           // rare roaming scramble patch
-          ch = SCRAMBLE[(Math.floor(t * 7) + c * 5 + r * 11) % SCRAMBLE.length];
-          grey = 175;                                  // a touch brighter (active)
-        } else {                                       // density-ramp wave
-          ch = RAMP[Math.min(RAMP.length - 1, Math.floor(dens * RAMP.length))];
-          grey = 118 + dens * 52;                      // denser → brighter (~#989898)
-        }
-        // Colour: lerp grey → the SOLID duo-tone for this cell's cluster.
+        var nx = sx * (c - cols * 0.5) + 0.5;
+        var ny = sy * (r - rows * 0.5) + 0.5;
+        var dx = nx + 0.55 * (pnoise(nx * 3 + s, ny * 3) - 0.5);
+        var dy = ny + 1.7 * (pnoise(nx * 3, ny * 3 + s) - 0.5);
+        var gIdx = c + r * cols;
+        var val = sampleWord(dx, dy);
+        if (val < fieldBuf[gIdx] * 0.94) val = fieldBuf[gIdx] * 0.94;  // persistence trail
+        fieldBuf[gIdx] = val;
+        if (val < 0.04) continue;
+        var ramp = ((c + r) & 1) ? RAMP_A : RAMP_B;
+        var ch = ramp[Math.min(ramp.length - 1, (val * ramp.length) | 0)];
+        if (ch === ' ') continue;
+        var grey = 110 + val * 75;
         var col = clusterField(c, r, t) > 0 ? A : B;
         ctx.fillStyle = 'rgb(' +
           Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[0] * k) * bw * introFade))) + ',' +
