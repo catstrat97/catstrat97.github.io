@@ -764,7 +764,7 @@
     // legible) and heavy distortion (it voxelises/expands). The pow() bias makes
     // it dwell longer in the calm/legible state before each distortion swell.
     var pulse = Math.pow(Math.sin(now * 0.0004) * 0.5 + 0.5, 1.5);  // 0 calm → 1 distorted
-    var warpX = 0.03 + 0.42 * pulse, warpY = 0.06 + 0.9 * pulse;
+    var warpX = 0.03 + 0.30 * pulse, warpY = 0.06 + 0.62 * pulse;   // softened peak
     // Big word (~92% width) at its real aspect, with a long persistence trail so
     // it flows out and voxelises across the canvas as the warp swells.
     var wW = window.innerWidth * 0.92, wH = wW * (WB_H / WB_W);
@@ -785,7 +785,9 @@
         var ch = ramp[Math.min(ramp.length - 1, (val * ramp.length) | 0)];
         if (ch === ' ') continue;
         var grey = 110 + val * 75;
-        var col = clusterField(c, r, t) > 0 ? A : B;
+        // Duo-tone split by intensity: solid letter interiors (fill) take one
+        // colour, the dithered edges/trail (stroke) take the other.
+        var col = val > 0.92 ? A : B;
         ctx.fillStyle = 'rgb(' +
           Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[0] * k) * bw * introFade))) + ',' +
           Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[1] * k) * bw * introFade))) + ',' +
