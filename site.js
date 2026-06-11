@@ -84,8 +84,9 @@
     '│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌' +
     '░▒▓█▄▌▐▀').split('');
 
-  // Restricted glyph set used by the page load-in scramble.
-  var LOAD_GLYPHS = '░▒▓█%#?/'.split('');
+  // Odometer set the scramble spins through (sequentially) before resolving to
+  // the real character — used by both the load-in and the click-2 decode.
+  var SCRAMBLE_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
 
   function wrapTextNodes(text) {
     var tokens = text.split(/(\s+)/);
@@ -405,11 +406,6 @@
     }
   }
 
-  /* ── Page load-in: scramble every text element in from the border ──
-     Each element is hidden, then revealed with a short glyph scramble. The
-     delay is proportional to the element's distance from the nearest viewport
-     edge, so the reveal collapses inward from the border toward the centre.
-     Uses the restricted LOAD_GLYPHS set. */
   /* Glyph-scramble helpers shared by the load-in and the click state.
      A position's box is frozen to its real width, then each glyph string is
      horizontally scaled (scaleX) to fill that exact width — so the surrounding
@@ -440,24 +436,19 @@
     if (real != null) el.textContent = real;
   }
 
-  /* Click state 2 — a self-resolving "decode": each char flickers fast through
-     simple symbols, ends on a few blocky glyphs, then snaps back to the real
+  /* Click state 2 — odometer decode (like the reference): each char spins
+     sequentially through A-Z0-9 from a random start, then resolves to the real
      letter. Staggered across the chars near the cursor (set in the caller). */
-  var DECODE_SIMPLE = '!@#$%&*+=/?<>~^|0123456789'.split('');
-  var DECODE_BLOCK = '░▒▓█▄▌▐▀'.split('');
   function decodeChar(el) {
     el.dataset.originalChar = el.textContent;
     lockBox(el);
     el.style.color = 'white';
-    // Simple glyphs sit at letter height at full size; block glyphs fill the
-    // whole em, so shrink only those so their height matches the letters too.
-    var SIZE_SIMPLE = '1em', SIZE_BLOCK = '0.72em';
-    var step = 0, FAST = 16, BLOCK = 5;
+    var idx = Math.floor(Math.random() * SCRAMBLE_SET.length);
+    var step = 0, SPIN = 14;
     var iv = setInterval(function () {
-      if (step < FAST) {
-        applyGlyph(el, DECODE_SIMPLE[Math.floor(Math.random() * DECODE_SIMPLE.length)], SIZE_SIMPLE);
-      } else if (step < FAST + BLOCK) {
-        applyGlyph(el, DECODE_BLOCK[Math.floor(Math.random() * DECODE_BLOCK.length)], SIZE_BLOCK);
+      if (step < SPIN) {
+        idx = (idx + 1) % SCRAMBLE_SET.length;
+        applyGlyph(el, SCRAMBLE_SET[idx], '1em');
       } else {
         clearInterval(iv); el._glyphInterval = null;
         unlockBox(el, el.dataset.originalChar);
@@ -466,16 +457,16 @@
         return;
       }
       step++;
-    }, 35);                                    // very fast flicker
+    }, 40);
     el._glyphInterval = iv;
   }
 
-  /* One shared glyph sequence drives every position (same chars, in order,
-     twice); only the start is offset — a downward eased cascade with a small
-     rain scatter. Per-letter `.char` tokens (the intro) render as a TIGHT
-     monospace cell for the matrix-rain look; multi-char tokens (chrome labels,
-     project-list cells) use the locked + small-centred fill so their containers
-     never reflow. Time-based clock so it always finishes in ~real time. */
+  /* Page/scroll load-in — the same odometer decode: every position spins
+     sequentially through A-Z0-9 (from its own random start) then resolves to the
+     real character, staggered top→bottom in an eased cascade. Per-letter `.char`
+     tokens (the intro) render as a tight monospace cell; multi-char tokens
+     (chrome labels, list cells) use the locked fill so containers never reflow.
+     Time-based clock so it always finishes in ~real time. */
   function scrambleIn(els, onDone) {
     var toks = [];
     var minY = Infinity, maxY = -Infinity;
@@ -493,11 +484,12 @@
 
     var span = Math.max(1, maxY - minY);
     var MAX_STAGGER = 26;                    // steps of delay between top and bottom
-    var SCRAMBLE = LOAD_GLYPHS.length * 2;   // steps each position scrambles before locking
+    var SPIN = 16;                           // odometer steps each position spins
     toks.forEach(function (t) {
       var f = (t.cy - minY) / span;          // 0 = top, 1 = bottom
       var e = f < 0.5 ? 4 * f * f * f : 1 - Math.pow(-2 * f + 2, 3) / 2; // easeInOutCubic
-      t.start = Math.round(e * MAX_STAGGER + Math.random() * 6); // + rain scatter
+      t.start = Math.round(e * MAX_STAGGER + Math.random() * 6); // + scatter
+      t.si = Math.floor(Math.random() * SCRAMBLE_SET.length);    // spin start
     });
 
     var t0 = performance.now();
@@ -508,8 +500,8 @@
         if (t.done) return;
         var local = step - t.start;
         if (local < 0) { active = true; return; }    // not started yet → stays hidden
-        var glyph = LOAD_GLYPHS[local % LOAD_GLYPHS.length];
-        if (local < SCRAMBLE) {
+        if (local < SPIN) {
+          var glyph = SCRAMBLE_SET[(t.si + local) % SCRAMBLE_SET.length];
           t.el.style.color = '';
           if (t.tight) {
             t.el.style.fontFamily = 'monospace';
@@ -773,8 +765,8 @@
       for (var r = 0; r < rows; r++) {
         var u = (c * CELL - ox) / wW;
         var v = (r * CELL - oy) / wH;
-        var dx = u + 0.05 * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);   // gentle wobble
-        var dy = v + 0.10 * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
+        var dx = u + 0.03 * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);   // very gentle wobble
+        var dy = v + 0.06 * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
         var gIdx = c + r * cols;
         var val = sampleWord(dx, dy);
         if (val < fieldBuf[gIdx] * 0.88) val = fieldBuf[gIdx] * 0.88;  // persistence trail
