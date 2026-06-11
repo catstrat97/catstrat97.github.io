@@ -159,6 +159,7 @@
         c.style.borderRadius = ''; c.style.textShadow = '';
         c.style.width = ''; c.style.height = ''; c.style.overflow = '';
         c.style.transformOrigin = ''; c.style.whiteSpace = ''; c.style.textAlign = '';
+        c.style.verticalAlign = ''; c.style.lineHeight = '';
         delete c.dataset.boxw; delete c.dataset.gunit;
         if (c._glyphInterval) {
           clearInterval(c._glyphInterval); c._glyphInterval = null;
@@ -359,25 +360,19 @@
       charsInRadius.forEach(function (charData, index) {
         charData.element.dataset.active = 'true';
         setTimeout(function () {
+          var el = charData.element;
+          if (currentState === 2) { decodeChar(el); return; }  // self-resolving sequence
           if (currentState === 1) {
             var rx = (Math.random() - 0.5) * 80, ry = (Math.random() - 0.5) * 80;
-            charData.element.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
-            charData.element.style.color = colors[Math.floor(Math.random() * colors.length)];
-          } else if (currentState === 2) {
-            charData.element.dataset.originalChar = charData.element.textContent;
-            lockBox(charData.element);
-            charData.element.style.color = 'white';
-            applyGlyph(charData.element, GLYPHS[Math.floor(Math.random() * GLYPHS.length)], '1em');
-            charData.element._glyphInterval = setInterval(function () {
-              applyGlyph(charData.element, GLYPHS[Math.floor(Math.random() * GLYPHS.length)], '1em');
-            }, 130);
+            el.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
+            el.style.color = colors[Math.floor(Math.random() * colors.length)];
           } else if (currentState === 3) {
-            charData.element.style.transform = 'scaleY(-1)';
-            charData.element.style.display = 'inline-block';
-            charData.element.style.color = 'white';
+            el.style.transform = 'scaleY(-1)';
+            el.style.display = 'inline-block';
+            el.style.color = 'white';
           }
-          flippedChars.push(charData.element);
-        }, index * (currentState === 2 ? 32 : 10));
+          flippedChars.push(el);
+        }, index * (currentState === 2 ? 26 : 10));
       });
 
       if (returnTimeout) clearTimeout(returnTimeout);
@@ -388,6 +383,7 @@
             char.style.fontFamily = ''; char.style.fontSize = ''; char.style.display = '';
             char.style.width = ''; char.style.height = ''; char.style.overflow = '';
             char.style.transformOrigin = ''; char.style.whiteSpace = ''; char.style.textAlign = '';
+            char.style.verticalAlign = ''; char.style.lineHeight = '';
             delete char.dataset.boxw; delete char.dataset.gunit;
             if (char._glyphInterval) {
               clearInterval(char._glyphInterval); char._glyphInterval = null;
@@ -423,11 +419,13 @@
   function lockBox(el) {
     var w = el.offsetWidth, h = el.offsetHeight;
     el.style.width = w + 'px';                 // freeze the box (both axes) so the
-    el.style.height = h + 'px';                // smaller scramble glyph can't shrink
-    el.style.display = 'inline-block';         // the cell and shift the layout
+    el.style.height = h + 'px';                // scramble glyph can't resize the cell
+    el.style.display = 'inline-block';         // and shift the layout
     el.style.textAlign = 'center';
     el.style.overflow = 'hidden';
     el.style.whiteSpace = 'nowrap';
+    el.style.verticalAlign = 'top';            // overflow:hidden inline-block else
+    el.style.lineHeight = h + 'px';            // moves the baseline → grows the line
   }
   function applyGlyph(el, str, size) {
     el.style.fontFamily = 'monospace';
@@ -438,7 +436,35 @@
     el.style.fontFamily = ''; el.style.fontSize = ''; el.style.width = '';
     el.style.height = ''; el.style.display = ''; el.style.textAlign = '';
     el.style.overflow = ''; el.style.whiteSpace = '';
+    el.style.verticalAlign = ''; el.style.lineHeight = '';
     if (real != null) el.textContent = real;
+  }
+
+  /* Click state 2 — a self-resolving "decode": each char flickers fast through
+     simple symbols, ends on a few blocky glyphs, then snaps back to the real
+     letter. Staggered across the chars near the cursor (set in the caller). */
+  var DECODE_SIMPLE = '!@#$%&*+=/?<>~^|0123456789'.split('');
+  var DECODE_BLOCK = '░▒▓█▄▌▐▀'.split('');
+  function decodeChar(el) {
+    el.dataset.originalChar = el.textContent;
+    lockBox(el);
+    el.style.color = 'white';
+    var step = 0, FAST = 16, BLOCK = 5;
+    var iv = setInterval(function () {
+      if (step < FAST) {
+        applyGlyph(el, DECODE_SIMPLE[Math.floor(Math.random() * DECODE_SIMPLE.length)], '1em');
+      } else if (step < FAST + BLOCK) {
+        applyGlyph(el, DECODE_BLOCK[Math.floor(Math.random() * DECODE_BLOCK.length)], '1em');
+      } else {
+        clearInterval(iv); el._glyphInterval = null;
+        unlockBox(el, el.dataset.originalChar);
+        el.style.color = '';
+        delete el.dataset.active; delete el.dataset.originalChar;
+        return;
+      }
+      step++;
+    }, 35);                                    // very fast flicker
+    el._glyphInterval = iv;
   }
 
   /* One shared glyph sequence drives every position (same chars, in order,
@@ -622,11 +648,14 @@
       Math.sin((x + y) * 0.1 + t * 0.22);
   }
 
-  var last = 0;
+  var last = 0, startTime = 0;
   function draw(now) {
     requestAnimationFrame(draw);
     if (now - last < 66) return;             // ~15fps — it's a calm background
     last = now;
+    // Ease the whole field in when it first starts (after the load-in).
+    var introFade = Math.min(1, (now - startTime) / 2500);
+    introFade = introFade * introFade * (3 - 2 * introFade);   // smoothstep
     drag *= 0.97;                            // decays unless you keep fast-dragging
     lit += (drag - lit) * 0.03;              // slow lerp grey<->colour, in AND out
     overSmooth += (overTarget - overSmooth) * 0.03;  // slow grey<->colour over text
@@ -660,9 +689,9 @@
         // Colour: lerp grey → the SOLID duo-tone for this cell's cluster.
         var col = clusterField(c, r, t) > 0 ? A : B;
         ctx.fillStyle = 'rgb(' +
-          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[0] * k) * bw))) + ',' +
-          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[1] * k) * bw))) + ',' +
-          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[2] * k) * bw))) + ')';
+          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[0] * k) * bw * introFade))) + ',' +
+          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[1] * k) * bw * introFade))) + ',' +
+          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[2] * k) * bw * introFade))) + ')';
         ctx.fillText(GLYPHS[gi], c * CELL, r * CELL);
       }
     }
@@ -670,7 +699,7 @@
 
   // Start the field only after the home load-in scramble finishes; on pages
   // without a load-in (no SiteFX) start immediately.
-  function start() { requestAnimationFrame(draw); }
+  function start() { startTime = performance.now(); requestAnimationFrame(draw); }
   if (window.SiteFX && !window.SiteFX.ready) {
     document.addEventListener('site:ready', start, {once: true});
   } else {
