@@ -760,9 +760,13 @@
     // sample coords with Perlin noise (anomalous expand/contract), and keep a
     // decaying persistence so the moving shape smears into a full field.
     var s = now * 0.0005;
-    // Big word (~92% width) at its real aspect, Perlin domain-warp actively
-    // expanding/contracting it, and a long persistence trail so it flows out and
-    // voxelises across the canvas rather than sitting static in the centre.
+    // The domain-warp amplitude breathes over ~16s between calm (the word is
+    // legible) and heavy distortion (it voxelises/expands). The pow() bias makes
+    // it dwell longer in the calm/legible state before each distortion swell.
+    var pulse = Math.pow(Math.sin(now * 0.0004) * 0.5 + 0.5, 1.5);  // 0 calm → 1 distorted
+    var warpX = 0.03 + 0.42 * pulse, warpY = 0.06 + 0.9 * pulse;
+    // Big word (~92% width) at its real aspect, with a long persistence trail so
+    // it flows out and voxelises across the canvas as the warp swells.
     var wW = window.innerWidth * 0.92, wH = wW * (WB_H / WB_W);
     var ox = (window.innerWidth - wW) / 2, oy = (window.innerHeight - wH) / 2;
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -770,8 +774,8 @@
       for (var r = 0; r < rows; r++) {
         var u = (c * CELL - ox) / wW;
         var v = (r * CELL - oy) / wH;
-        var dx = u + 0.22 * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);   // anomalous expand/contract
-        var dy = v + 0.5 * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
+        var dx = u + warpX * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);
+        var dy = v + warpY * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
         var gIdx = c + r * cols;
         var val = sampleWord(dx, dy);
         if (val < fieldBuf[gIdx] * 0.93) val = fieldBuf[gIdx] * 0.93;  // long persistence trail
