@@ -373,7 +373,7 @@
             el.style.color = 'white';
           }
           flippedChars.push(el);
-        }, index * (currentState === 2 ? 26 : 10));
+        }, index * (currentState === 2 ? 14 : 10));
       });
 
       if (returnTimeout) clearTimeout(returnTimeout);
@@ -439,20 +439,20 @@
   /* Click state 2 — each char flickers fast through special symbols, ends on a
      few block glyphs, then snaps back to the real letter. Staggered across the
      chars near the cursor (set in the caller). */
-  var DECODE_SIMPLE = '!@#$%&*+=/?<>~^|0123456789'.split('');
-  var DECODE_BLOCK = '░▒▓█▄▌▐▀'.split('');
+  var DECODE_SIMPLE = '-=+*:<>'.split('');     // small symbol set (no numbers)
+  var DECODE_BLOCK = '░▒▓█▄▀'.split('');
   function decodeChar(el) {
     el.dataset.originalChar = el.textContent;
     lockBox(el);
     el.style.color = 'white';
-    // Simple glyphs sit at letter height at 1em; block glyphs fill the whole em,
-    // so shrink only those so their height matches the letters too.
-    var step = 0, FAST = 16, BLOCK = 5;
+    // Cycle the sets in order (not random) so the chars move in sync; block
+    // glyphs fill the whole em, so shrink only those to match the letter height.
+    var step = 0, FAST = 12, BLOCK = 4;
     var iv = setInterval(function () {
       if (step < FAST) {
-        applyGlyph(el, DECODE_SIMPLE[Math.floor(Math.random() * DECODE_SIMPLE.length)], '1em');
+        applyGlyph(el, DECODE_SIMPLE[step % DECODE_SIMPLE.length], '1em');
       } else if (step < FAST + BLOCK) {
-        applyGlyph(el, DECODE_BLOCK[Math.floor(Math.random() * DECODE_BLOCK.length)], '0.72em');
+        applyGlyph(el, DECODE_BLOCK[(step - FAST) % DECODE_BLOCK.length], '0.72em');
       } else {
         clearInterval(iv); el._glyphInterval = null;
         unlockBox(el, el.dataset.originalChar);
