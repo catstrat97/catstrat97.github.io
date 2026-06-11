@@ -591,17 +591,15 @@
   });
   window.addEventListener('scroll', function () { lastActivity = performance.now(); }, {passive: true});
 
-  // Neon duo-tone pairs the colour eases toward (solid, in clusters). Cycles.
+  // Duo-tone pairs the colour eases toward (solid, in clusters). Two colours
+  // at a time; the pair only advances once a session has faded back to grey.
   var DUOS = [
-    [[255, 110, 0], [140, 0, 210]],   // halloween: orange / purple
-    [[255, 30, 120], [255, 130, 0]],  // hot pink / orange
-    [[170, 255, 40], [225, 180, 30]], // lime green / yellow-mustard
-    [[0, 225, 255], [255, 120, 0]],   // cyan / orange
-    [[40, 110, 255], [235, 220, 30]], // electric blue / yellow
-    [[255, 45, 45], [0, 220, 180]],   // red / teal
-    [[255, 200, 0], [120, 0, 220]],   // gold / violet
-    [[0, 235, 150], [255, 60, 90]],   // mint / coral-red
+    [[255, 255, 255], [240, 225, 40]],  // white / yellow
+    [[255, 110, 0], [140, 0, 210]],     // halloween orange / halloween purple
+    [[165, 235, 240], [150, 90, 45]],   // pale cyan / brown
+    [[170, 255, 40], [25, 120, 45]],    // lime green / dark green
   ];
+  var pairIndex = 0, colored = false;
 
   // Flow field — the coordinates are domain-warped (bent by a second set of
   // slow sines) before sampling, so the iso-lines curve and swirl and the crests
@@ -641,19 +639,18 @@
     var waveAmt = energy;
     var thresh = 0.44 - energy * 0.18;       // denser as energy rises
     var k = energy;
-    // Smoothly lerp the duo-tone between consecutive pairs over the cycle.
-    var ci = t / 9, i0 = Math.floor(ci) % DUOS.length, i1 = (i0 + 1) % DUOS.length;
-    var cf = ci - Math.floor(ci); cf = cf * cf * (3 - 2 * cf);         // smoothstep
-    var A0 = DUOS[i0][0], A1 = DUOS[i1][0], B0 = DUOS[i0][1], B1 = DUOS[i1][1];
-    var pA0 = A0[0] + (A1[0] - A0[0]) * cf, pA1 = A0[1] + (A1[1] - A0[1]) * cf, pA2 = A0[2] + (A1[2] - A0[2]) * cf;
-    var pB0 = B0[0] + (B1[0] - B0[0]) * cf, pB1 = B0[1] + (B1[1] - B0[1]) * cf, pB2 = B0[2] + (B1[2] - B0[2]) * cf;
+    // Advance to the next pair only once a colour session has faded back to grey,
+    // so the two active colours never change while colour is visible.
+    if (energy > 0.15) colored = true;
+    else if (energy < 0.03 && colored) { pairIndex = (pairIndex + 1) % DUOS.length; colored = false; }
+    var A = DUOS[pairIndex][0], B = DUOS[pairIndex][1];
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (var c = 0; c < cols; c++) {
       for (var r = 0; r < rows; r++) {
         var n = field(c, r, t);
         if (n < thresh) continue;
         var b = (n - thresh) / (1 - thresh);          // 0..1 within a crest
-        var grey = 20 + b * 36;
+        var grey = 138 + b * 28;                       // ~#989898, matches list hover
         // Travelling brightness wave — bigger/more prominent as energy rises.
         var bw = 1 + waveAmt * 0.9 * Math.sin(t * 2.4 - (c + r) * 0.33);
         var organic = (n + 1) * 4 + t * 2;
@@ -661,12 +658,11 @@
         var gi = Math.floor(organic * (1 - waveAmt) + wave * waveAmt) % GLYPHS.length;
         if (gi < 0) gi += GLYPHS.length;
         // Colour: lerp grey → the SOLID duo-tone for this cell's cluster.
-        var useA = clusterField(c, r, t) > 0;
-        var cR = useA ? pA0 : pB0, cG = useA ? pA1 : pB1, cB = useA ? pA2 : pB2;
+        var col = clusterField(c, r, t) > 0 ? A : B;
         ctx.fillStyle = 'rgb(' +
-          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + cR * k) * bw))) + ',' +
-          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + cG * k) * bw))) + ',' +
-          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + cB * k) * bw))) + ')';
+          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[0] * k) * bw))) + ',' +
+          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[1] * k) * bw))) + ',' +
+          Math.max(0, Math.min(255, Math.round((grey * (1 - k) + col[2] * k) * bw))) + ')';
         ctx.fillText(GLYPHS[gi], c * CELL, r * CELL);
       }
     }
