@@ -436,19 +436,23 @@
     if (real != null) el.textContent = real;
   }
 
-  /* Click state 2 — odometer decode (like the reference): each char spins
-     sequentially through A-Z0-9 from a random start, then resolves to the real
-     letter. Staggered across the chars near the cursor (set in the caller). */
+  /* Click state 2 — each char flickers fast through special symbols, ends on a
+     few block glyphs, then snaps back to the real letter. Staggered across the
+     chars near the cursor (set in the caller). */
+  var DECODE_SIMPLE = '!@#$%&*+=/?<>~^|0123456789'.split('');
+  var DECODE_BLOCK = '░▒▓█▄▌▐▀'.split('');
   function decodeChar(el) {
     el.dataset.originalChar = el.textContent;
     lockBox(el);
     el.style.color = 'white';
-    var idx = Math.floor(Math.random() * SCRAMBLE_SET.length);
-    var step = 0, SPIN = 14;
+    // Simple glyphs sit at letter height at 1em; block glyphs fill the whole em,
+    // so shrink only those so their height matches the letters too.
+    var step = 0, FAST = 16, BLOCK = 5;
     var iv = setInterval(function () {
-      if (step < SPIN) {
-        idx = (idx + 1) % SCRAMBLE_SET.length;
-        applyGlyph(el, SCRAMBLE_SET[idx], '1em');
+      if (step < FAST) {
+        applyGlyph(el, DECODE_SIMPLE[Math.floor(Math.random() * DECODE_SIMPLE.length)], '1em');
+      } else if (step < FAST + BLOCK) {
+        applyGlyph(el, DECODE_BLOCK[Math.floor(Math.random() * DECODE_BLOCK.length)], '0.72em');
       } else {
         clearInterval(iv); el._glyphInterval = null;
         unlockBox(el, el.dataset.originalChar);
@@ -457,7 +461,7 @@
         return;
       }
       step++;
-    }, 40);
+    }, 35);                                    // very fast flicker
     el._glyphInterval = iv;
   }
 
