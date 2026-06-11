@@ -755,21 +755,22 @@
     // Map the grid onto the word bitmap (word ~fills the screen), domain-warp the
     // sample coords with Perlin noise (anomalous expand/contract), and keep a
     // decaying persistence so the moving shape smears into a full field.
-    var s = now * 0.0003;
-    // Map the word onto the centre of the screen at its real aspect ratio
-    // (~60% width), with only a gentle Perlin wobble so it stays legible.
-    var wW = window.innerWidth * 0.7, wH = wW * (WB_H / WB_W);
+    var s = now * 0.0005;
+    // Big word (~92% width) at its real aspect, Perlin domain-warp actively
+    // expanding/contracting it, and a long persistence trail so it flows out and
+    // voxelises across the canvas rather than sitting static in the centre.
+    var wW = window.innerWidth * 0.92, wH = wW * (WB_H / WB_W);
     var ox = (window.innerWidth - wW) / 2, oy = (window.innerHeight - wH) / 2;
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (var c = 0; c < cols; c++) {
       for (var r = 0; r < rows; r++) {
         var u = (c * CELL - ox) / wW;
         var v = (r * CELL - oy) / wH;
-        var dx = u + 0.03 * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);   // very gentle wobble
-        var dy = v + 0.06 * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
+        var dx = u + 0.22 * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);   // anomalous expand/contract
+        var dy = v + 0.5 * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
         var gIdx = c + r * cols;
         var val = sampleWord(dx, dy);
-        if (val < fieldBuf[gIdx] * 0.88) val = fieldBuf[gIdx] * 0.88;  // persistence trail
+        if (val < fieldBuf[gIdx] * 0.93) val = fieldBuf[gIdx] * 0.93;  // long persistence trail
         fieldBuf[gIdx] = val;
         if (val < 0.04) continue;
         var ramp = ((c + r) & 1) ? RAMP_A : RAMP_B;
