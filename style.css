@@ -319,8 +319,10 @@ a { color: inherit; text-decoration: none; }
 .projects-table { width: 100%; }
 .projects-status { color: rgba(3, 254, 151, 0.5); padding: 16px var(--row-pad-x); }
 
-.year-group { border-top: 1px solid var(--green); }
-.year-group:last-child { border-bottom: 1px solid var(--green); }
+.year-group {
+  border-top: 1px solid var(--green);
+  border-bottom: 1px solid var(--green);
+}
 .year-group:not(:last-child) { margin-bottom: 96px; }
 
 .project-row {

@@ -24,9 +24,27 @@
     });
   }
 
-  // Fixed filter set for now (matches the Figma toolbar). Matched against the
+  // Filter tags are derived from the loaded projects (see buildFilterTags), so
+  // the chips always reflect what's actually in Sanity. Matched against the
   // project tags case-insensitively.
-  var FILTER_TAGS = ['Identity', 'Poster', 'Motion', 'Test'];
+  var FILTER_TAGS = [];
+
+  // Collect the distinct tags across all projects, preserving first-seen order.
+  function buildFilterTags() {
+    var seen = {};
+    FILTER_TAGS = [];
+    state.projects.forEach(function (p) {
+      (p.tags || []).forEach(function (t) {
+        if (t == null) return;
+        var label = String(t).trim();
+        if (!label) return;
+        var key = label.toLowerCase();
+        if (seen[key]) return;
+        seen[key] = true;
+        FILTER_TAGS.push(label);
+      });
+    });
+  }
 
   function filtered() {
     if (!state.activeTag) return state.projects;
@@ -199,6 +217,7 @@
     .then(function (projects) {
       state.projects = projects || [];
       showStatus('');
+      buildFilterTags();
       renderChips();
       renderList();
       renderGrid();
