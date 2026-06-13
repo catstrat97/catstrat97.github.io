@@ -357,45 +357,48 @@
   runLoadIn();
 })();
 
-/* ── 4. Procedural noise field (locked to page green) ───────────
-   A 3-letter word is drawn to a tiny bitmap, then sampled across a grid
-   through a Perlin domain-warp (anomalous expand/contract). A persistence
-   buffer smears the moving shape into a full field, dithered into two
-   alternating ASCII ramps. The word scrambles to the next word periodically.
-   Colour is locked to the page green on black — mounted into #noise-stage as
-   a framed monitor in the centre column of the hero.
+/* ── 4. Procedural noise field (full-page domain-warp word) ──────
+   A 3-letter word is drawn to a bitmap and sampled across a FULL-VIEWPORT
+   grid through a Perlin domain-warp. The bitmap is split into a thick stroke
+   band (the eroded core subtracted from the fill) and an interior core:
+     • at rest  → the stroke cells run a parametric glyph wave (a calm
+                  box-drawing "sequencer"); the interior is just IBM Plex
+                  Mono dots (·); only the stroke animates.
+     • on hover → every letter cell rapidly switches through block/box glyphs
+                  (░▒▓ ─│┌) driven by a faster wave.
+   The word itself steps to the next word with a deterministic odometer.
+   Mounted as a fixed page background (home only); all glyphs are IBM Plex Mono.
 ──────────────────────────────────────────────────────────────── */
 (function () {
-  var stage = document.getElementById('noise-stage');
-  if (!stage) return;                        // framed-monitor only (home hero)
+  // Home only — gate on the hero's noise stage, but render across the page.
+  if (!document.getElementById('noise-stage')) return;
 
   var canvas = document.createElement('canvas');
   canvas.className = 'noise-field';
   canvas.setAttribute('aria-hidden', 'true');
-  stage.appendChild(canvas);
+  document.body.insertBefore(canvas, document.body.firstChild);
   var ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   var GREEN = [3, 254, 151];
-  var CELL = 22;
+  var MONO = "'IBM Plex Mono', monospace";
+  var CELL = 20;
   var SW = 0, SH = 0, cols = 0, rows = 0;
   var fieldBuf;
 
-  // Interaction reveal: the letters' interiors sit near-background grey at rest
-  // and "pop" to green as the user moves the cursor anywhere on the page. The
-  // stroke (dithered edges/trail) stays green throughout.
-  var interact = 0;      // raw pulse, set to 1 on each mousemove
-  var energy = 0;        // eased 0..1 reveal driven from `interact`
+  // Interaction energy: cursor movement anywhere lifts `energy` toward 1; it
+  // relaxes back to 0 (calm/rest) when the pointer goes idle.
+  var interact = 0, energy = 0;
   document.addEventListener('mousemove', function () { interact = 1; });
 
   function resize() {
-    SW = Math.max(1, stage.clientWidth);
-    SH = Math.max(1, stage.clientHeight);
+    SW = Math.max(1, window.innerWidth);
+    SH = Math.max(1, window.innerHeight);
     canvas.width = SW;
     canvas.height = SH;
     canvas.style.width = SW + 'px';
     canvas.style.height = SH + 'px';
-    ctx.font = '15px ' + "'IBM Plex Mono', monospace";
+    ctx.font = '15px ' + MONO;
     ctx.textBaseline = 'top';
     cols = Math.ceil(SW / CELL);
     rows = Math.ceil(SH / CELL);
@@ -421,16 +424,25 @@
     };
   })();
 
-  /* word bitmap (offscreen) + bilinear sampler */
-  var RAMP_A = ' .·•-+=:;*ABC0123!*'.split('');
-  var RAMP_B = ' ·-•~+:*abcXYZ*'.split('');
-  var WB_W = 41, WB_H = 24, WB_FONT = 'bold 20px ' + "'IBM Plex Mono', monospace";
+  /* Glyph sets. REST_STROKE = the calm box-drawing wave the stroke runs at
+     rest; HOVER_SET = the rapid block/box switch on hover. */
+  var REST_STROKE = '─│┌┐└┘├┤┼┴┬═║░▒▓'.split('');
+  var HOVER_SET = '░▒▓─│┌'.split('');
+
+  /* Word bitmap (offscreen), high-res. wbFill is a BLURRED soft field of the
+     solid letterform: a smooth interior-distance ramp (0 outside → 1 deep
+     inside). Thresholding it gives a thick stroke band (mid values) wrapping a
+     dotted interior (high values), reliably sampleable on the screen grid. */
+  var WB_W = 1, WB_H = 120, WB_FONT = '900 98px ' + MONO;
+  var BLUR_PX = 6;                         // soft-field radius → stroke band width
+  var INK_T = 0.14;                        // below → empty
+  var CORE_T = 0.62;                       // above → interior (dots); between → stroke
   var wbCanvas = document.createElement('canvas');
   var wbCtx = wbCanvas.getContext('2d');
-  var wbData = new Float32Array(WB_W * WB_H);
+  var wbFill = new Float32Array(1);
   function renderWord(w) {
     wbCtx.font = WB_FONT;
-    WB_W = Math.ceil(wbCtx.measureText(w).width) + 4;
+    WB_W = Math.ceil(wbCtx.measureText(w).width) + 16;
     wbCanvas.width = WB_W; wbCanvas.height = WB_H;
     wbCtx.font = WB_FONT;
     wbCtx.fillStyle = '#000'; wbCtx.fillRect(0, 0, WB_W, WB_H);
@@ -438,22 +450,38 @@
     wbCtx.textAlign = 'center'; wbCtx.textBaseline = 'middle';
     wbCtx.fillText(w, WB_W / 2, WB_H / 2 + 1);
     var img = wbCtx.getImageData(0, 0, WB_W, WB_H).data;
-    wbData = new Float32Array(WB_W * WB_H);
-    for (var i = 0; i < wbData.length; i++) wbData[i] = img[i * 4] > 100 ? 1 : 0;
+    var bin = new Float32Array(WB_W * WB_H);
+    for (var i = 0; i < bin.length; i++) bin[i] = img[i * 4] > 100 ? 1 : 0;
+    // Separable box blur (two passes) → smooth interior-distance ramp.
+    var tmp = new Float32Array(WB_W * WB_H);
+    var R = BLUR_PX, norm = 1 / (2 * R + 1);
+    for (var y = 0; y < WB_H; y++) {
+      for (var x = 0; x < WB_W; x++) {
+        var acc = 0;
+        for (var k = -R; k <= R; k++) { var px = Math.min(WB_W - 1, Math.max(0, x + k)); acc += bin[px + y * WB_W]; }
+        tmp[x + y * WB_W] = acc * norm;
+      }
+    }
+    wbFill = new Float32Array(WB_W * WB_H);
+    for (var x2 = 0; x2 < WB_W; x2++) {
+      for (var y2 = 0; y2 < WB_H; y2++) {
+        var acc2 = 0;
+        for (var k2 = -R; k2 <= R; k2++) { var py = Math.min(WB_H - 1, Math.max(0, y2 + k2)); acc2 += tmp[x2 + py * WB_W]; }
+        wbFill[x2 + y2 * WB_W] = acc2 * norm;
+      }
+    }
   }
-  function wbGet(px, py) {
-    return (px < 0 || px >= WB_W || py < 0 || py >= WB_H) ? 0 : wbData[px + py * WB_W];
-  }
-  function sampleWord(u, v) {
+  function sampleArr(arr, u, v) {
     if (u < 0 || u >= 1 || v < 0 || v >= 1) return 0;
     var x = u * WB_W - 0.5, y = v * WB_H - 0.5;
     var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
-    var a = wbGet(xi, yi) + (wbGet(xi + 1, yi) - wbGet(xi, yi)) * xf;
-    var b = wbGet(xi, yi + 1) + (wbGet(xi + 1, yi + 1) - wbGet(xi, yi + 1)) * xf;
+    function g(px, py) { return (px < 0 || px >= WB_W || py < 0 || py >= WB_H) ? 0 : arr[px + py * WB_W]; }
+    var a = g(xi, yi) + (g(xi + 1, yi) - g(xi, yi)) * xf;
+    var b = g(xi, yi + 1) + (g(xi + 1, yi + 1) - g(xi, yi + 1)) * xf;
     return a + (b - a) * yf;
   }
 
-  /* word list + letter scramble */
+  /* Word list + deterministic odometer scramble (sequencer-like, not random). */
   var WORDS = ['art', 'sun', 'sky', 'box', 'fox', 'run', 'fly', 'raw', 'mix', 'web',
     'dev', 'new', 'pix', 'bit', 'lab', 'map', 'ray', 'hue', 'dot', 'sys', 'gen', 'ink'];
   var ALPHA = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -475,6 +503,8 @@
   renderWord('ART');
   resize();
 
+  function clamp(x) { return Math.max(0, Math.min(255, Math.round(x))); }
+
   var frameN = 0, last = 0, startTime = 0;
   function draw(now) {
     requestAnimationFrame(draw);
@@ -483,8 +513,7 @@
     var introFade = Math.min(1, (now - startTime) / 2500);
     introFade = introFade * introFade * (3 - 2 * introFade);
 
-    // Ease the interaction reveal: cursor activity lifts `energy` toward 1,
-    // and it relaxes back to grey when the pointer goes idle.
+    // Ease the interaction energy (cursor active → 1, idle → 0).
     interact *= 0.90;
     energy += (interact - energy) * 0.12;
 
@@ -493,12 +522,15 @@
     if (frameN % 90 === 0) { pickWord(WORDS[wordPtr]); wordPtr = (wordPtr + 1) % WORDS.length; }
     if (frameN % 2 === 0) stepWord();
 
-    // The domain-warp amplitude breathes over ~16s between calm (legible) and
-    // heavy distortion (it voxelises/expands), biased to dwell in the calm state.
+    // Domain-warp amplitude breathes over ~16s between calm and distorted.
     var s = now * 0.0005;
     var pulse = Math.pow(Math.sin(now * 0.0004) * 0.5 + 0.5, 1.5);
     var warpX = 0.03 + 0.30 * pulse, warpY = 0.06 + 0.62 * pulse;
-    var bw = 1 + 0.25 * Math.sin(now / 1000 * 1.8);   // gentle brightness pulse
+    var bw = 1 + 0.20 * Math.sin(now / 1000 * 1.8);
+
+    // Parametric wave phases — a slow diagonal sweep at rest, a fast one on
+    // hover. Indexing glyphs by the wave (not at random) reads like a sequencer.
+    var restT = now * 0.0026, hoverT = now * 0.018;
 
     var wW = SW * 0.92, wH = wW * (WB_H / WB_W);
     var ox = (SW - wW) / 2, oy = (SH - wH) / 2;
@@ -510,32 +542,32 @@
         var dx = u + warpX * (pnoise(u * 2.5 + s, v * 2.5) - 0.5);
         var dy = v + warpY * (pnoise(u * 2.5, v * 2.5 + s) - 0.5);
         var gIdx = c + r * cols;
-        var val = sampleWord(dx, dy);
-        if (val < fieldBuf[gIdx] * 0.93) val = fieldBuf[gIdx] * 0.93;  // persistence trail
-        fieldBuf[gIdx] = val;
-        if (val < 0.04) continue;
-        var ramp = ((c + r) & 1) ? RAMP_A : RAMP_B;
-        var ch = ramp[Math.min(ramp.length - 1, (val * ramp.length) | 0)];
-        if (ch === ' ') continue;
-        // Stroke vs fill split by intensity (solid interior = val > 0.92).
-        //   stroke (edges/trail) → green, brightness rides the field value;
-        //   fill   (interior)    → dim grey at rest, lerps to green with energy.
-        var lit = 0.28 + 0.72 * val;             // field brightness 0..1
-        var rr, gg, bb;
-        if (val > 0.92) {
-          var grey = (0.10 + 0.25 * val) * 255;  // near-background grey interior
-          var e = energy;
-          rr = grey * (1 - e) + GREEN[0] * lit * e;
-          gg = grey * (1 - e) + GREEN[1] * lit * e;
-          bb = grey * (1 - e) + GREEN[2] * lit * e;
+        var vf = sampleArr(wbFill, dx, dy);
+        if (vf < fieldBuf[gIdx] * 0.92) vf = fieldBuf[gIdx] * 0.92;  // persistence trail
+        fieldBuf[gIdx] = vf;
+        if (vf < INK_T) continue;
+        var isCore = vf > CORE_T;            // interior (dots) vs stroke band
+
+        var lit = 0.32 + 0.68 * vf;
+        var ch, rr, gg, bb;
+        if (energy > 0.35) {
+          // Hover: rapid block/box switch across the whole letterform.
+          var hp = Math.sin(hoverT + c * 0.9 + r * 0.6) * 0.5 + 0.5;
+          ch = HOVER_SET[Math.min(HOVER_SET.length - 1, (hp * HOVER_SET.length) | 0)];
+          rr = GREEN[0] * lit; gg = GREEN[1] * lit; bb = GREEN[2] * lit;
+        } else if (isCore) {
+          // Rest interior: quiet IBM Plex Mono dots, near-background grey.
+          ch = '·';
+          var grey = (0.10 + 0.16 * vf) * 255;
+          rr = grey * 0.7; gg = grey; bb = grey * 0.85;
         } else {
+          // Rest stroke: parametric box-drawing wave (the only thing moving).
+          var wp = Math.sin(restT + c * 0.5 + r * 0.32) * 0.5 + 0.5;
+          ch = REST_STROKE[Math.min(REST_STROKE.length - 1, (wp * REST_STROKE.length) | 0)];
           rr = GREEN[0] * lit; gg = GREEN[1] * lit; bb = GREEN[2] * lit;
         }
         var f = bw * introFade;
-        ctx.fillStyle = 'rgb(' +
-          Math.max(0, Math.min(255, Math.round(rr * f))) + ',' +
-          Math.max(0, Math.min(255, Math.round(gg * f))) + ',' +
-          Math.max(0, Math.min(255, Math.round(bb * f))) + ')';
+        ctx.fillStyle = 'rgb(' + clamp(rr * f) + ',' + clamp(gg * f) + ',' + clamp(bb * f) + ')';
         ctx.fillText(ch, c * CELL, r * CELL);
       }
     }
