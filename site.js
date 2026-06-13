@@ -385,9 +385,14 @@
   var ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  var GREEN = [3, 254, 151];
+  var GREEN = [3, 254, 151];         // mint / spring — the RESTING green
+  // Extra green hues used as interaction STATES in the colour cycle (like the
+  // amber/grey/white states), not as a resting effect.
+  var NEON = [57, 255, 20];          // neon green   — interaction state
+  var LIME = [173, 255, 47];         // lime green   — interaction state
+  var EMERALD = [0, 230, 138];       // emerald      — interaction state
   var GREY = [150, 150, 150];        // movement accent (mid stages)
-  var AMBER = [255, 174, 44];        // #FFAE2C — movement accent
+  var AMBER = [255, 174, 44];        // #FFAE2C — yellow accent
   var WHITE = [236, 236, 236];       // deepest stage accent
   var MONO = "'IBM Plex Mono', monospace";
   var CELL = 20;
@@ -400,6 +405,10 @@
   // occasionally fires while moving — a one-off cipher sweep, not a held state.
   var interact = 0, energy = 0, glitchT = 0, heat = 0;
   var cyclePhase = 0, wasEngaged = false;
+  // `spread` selects the interaction look: ~0 = solid/uniform 2-colour (clean
+  // stroke vs fill), ~1 = mixed-hue scatter (cells fan across the cycle). A new
+  // mode is rolled (50/50) on each engagement and can flip during a long hover.
+  var spread = 0, spreadTarget = 0;
   document.addEventListener('mousemove', function () { interact = 1; });
 
   function resize() {
@@ -453,13 +462,14 @@
   var BLOCK_SET = '█▓▒░'.split('');
   var DIGITS = '0123456789'.split('');
 
-  /* Looping colour cycle: green → amber → grey → white → green … While the
-     cursor is engaged a free-running phase walks this ring (faster the longer
-     you hover), so the colours keep interpolating instead of stopping. The
-     stroke is read one colour AHEAD of the fill, so the two are always a
-     distinct stage apart (stroke amber / fill green, stroke grey / fill amber,
-     stroke white / fill grey, …). */
-  var CYCLE = [GREEN, AMBER, GREY, WHITE];
+  /* Looping colour cycle of interaction STATES: mint → neon → lime → emerald →
+     amber → grey → white → mint … The field rests at solid GREEN; once the
+     cursor engages a free-running phase walks this ring (faster the longer you
+     hover), so the letters cipher through the green hues first, then the amber/
+     grey/white accents, and loop. The stroke is read one state AHEAD of the
+     fill, so the two are always a distinct step apart. */
+  var CYCLE = [GREEN, NEON, LIME, EMERALD, AMBER, GREY, WHITE];
+  var STROKE_LEAD = 1 / CYCLE.length;       // one state ahead, in phase units
   var _col = [0, 0, 0];
   function gradLoop(t) {
     t -= Math.floor(t);                       // wrap to 0..1
@@ -551,35 +561,44 @@
   var frameN = 0, last = 0, startTime = 0;
   function draw(now) {
     requestAnimationFrame(draw);
-    if (now - last < 66) return;             // ~15fps — calm background
+    if (now - last < 15) return;             // ~60fps — smooth
     last = now;
     var introFade = Math.min(1, (now - startTime) / 2500);
     introFade = introFade * introFade * (3 - 2 * introFade);
 
-    // Ease the interaction energy (cursor active → 1, idle → 0).
-    interact *= 0.90;
-    energy += (interact - energy) * 0.12;
+    // Ease the interaction energy (cursor active → 1, idle → 0). Constants are
+    // tuned for ~60fps so the motion feels the same as the old 15fps timing,
+    // just smoother (≈ quarter of the old per-frame step).
+    interact *= 0.974;
+    energy += (interact - energy) * 0.032;
     // `heat` builds slowly while the cursor keeps moving (sustained hover →
     // deeper colour stages) and bleeds off when idle.
     var hTarget = energy > 0.35 ? 1 : 0;
-    heat += (hTarget - heat) * (hTarget > heat ? 0.006 : 0.02);
+    heat += (hTarget - heat) * (hTarget > heat ? 0.0015 : 0.005);
     // Rare glitch burst: while the cursor is moving, occasionally kick off a
     // self-decaying cipher sweep (≈ once every several seconds of movement).
-    if (energy > 0.2 && glitchT <= 0 && Math.random() < 0.010) glitchT = 1;
-    glitchT = glitchT > 0 ? glitchT - 0.045 : 0;
+    if (energy > 0.2 && glitchT <= 0 && Math.random() < 0.0025) glitchT = 1;
+    glitchT = glitchT > 0 ? glitchT - 0.011 : 0;
     // Colour cycle: a free-running phase that walks the GREEN→AMBER→GREY→WHITE
     // ring and loops forever. It only advances while the cursor is engaged
     // (sustained hover = faster walk via heat); it resets when re-engaging from
     // idle so the journey restarts at green each time.
     var engaged = energy > 0.25;
-    if (engaged && !wasEngaged) cyclePhase = 0;
+    if (engaged && !wasEngaged) {
+      cyclePhase = 0;
+      spreadTarget = Math.random() < 0.5 ? 1 : 0;   // 50/50 solid vs mixed
+    }
     wasEngaged = engaged;
-    if (engaged) cyclePhase += 0.006 + 0.012 * heat;
+    if (engaged) {
+      cyclePhase += 0.0015 + 0.003 * heat;
+      if (Math.random() < 0.004) spreadTarget = spreadTarget > 0.5 ? 0 : 1; // ~once/4s
+    }
+    spread += (spreadTarget - spread) * 0.05;        // ease between the two looks
 
-    // word scramble timing
+    // word scramble timing (intervals scaled ×4 for 60fps → same wall-clock pace)
     frameN++;
-    if (frameN % 90 === 0) { pickWord(WORDS[wordPtr]); wordPtr = (wordPtr + 1) % WORDS.length; }
-    if (frameN % 2 === 0) stepWord();
+    if (frameN % 360 === 0) { pickWord(WORDS[wordPtr]); wordPtr = (wordPtr + 1) % WORDS.length; }
+    if (frameN % 8 === 0) stepWord();
 
     // Domain-warp amplitude breathes over ~16s between calm and distorted.
     var s = now * 0.0005;
@@ -626,7 +645,12 @@
         var curve = Math.sin(colorT + c * 0.5 + r * 0.3) * 0.5 + 0.5;
         var prog = energy * 1.7 - hsh * 0.7;
         if (prog < 0) prog = 0; else if (prog > 1) prog = 1;
-        var jit = (curve - 0.5) * 0.10;             // per-cell colour-stage jitter
+        // Per-cell phase offset. The hash term (the mixed-hue fan-out) is scaled
+        // by `spread`, so in solid mode (~0) every cell shares the cycle phase
+        // for a clean 2-colour look, and in mixed mode (~1) they scatter across
+        // the states. A tiny flowing jitter remains in both for subtle life. At
+        // rest (amount 0) none of this shows; everything stays solid green.
+        var cellPh = hsh * 0.30 * spread + (curve - 0.5) * 0.05;
 
         // Glitch burst = thin hash band that sweeps as the pulse decays. Block
         // moment = field-wide cipher into solid blocks as the cycle crosses grey
@@ -649,8 +673,8 @@
                 ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gf * GLITCH_SET.length) | 0)]
                 : (prog < 0.85 ? DIGITS[(frameN + c * 2 + r * 3) % 10]
                                : DIGITS[(c * 7 + r * 13 + wordPtr) % 10]);
-            // FILL rides the loop; blended out from green by `amount`.
-            col = gradLoop(cyclePhase + jit);
+            // FILL rides the cycle; blended out from solid GREEN by `amount`.
+            col = gradLoop(cyclePhase + cellPh);
             var fb2 = 0.45 + 0.55 * prog;           // ease brightness in by reveal
             rr = (GREEN[0] + (col[0] - GREEN[0]) * amount) * lit * fb2;
             gg = (GREEN[1] + (col[1] - GREEN[1]) * amount) * lit * fb2;
@@ -666,9 +690,9 @@
             : inGlitch
               ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gj * GLITCH_SET.length) | 0)]
               : REST_STROKE[Math.min(REST_STROKE.length - 1, (wp * REST_STROKE.length) | 0)];
-          // STROKE rides the loop one stage AHEAD of the fill (+0.25), so the
-          // band and the interior are never the same colour; blended from green.
-          col = gradLoop(cyclePhase + 0.25 + jit);
+          // STROKE rides the cycle one state AHEAD of the fill, so the band and
+          // the interior are never the same colour; blended from solid GREEN.
+          col = gradLoop(cyclePhase + STROKE_LEAD + cellPh);
           rr = (GREEN[0] + (col[0] - GREEN[0]) * amount) * lit;
           gg = (GREEN[1] + (col[1] - GREEN[1]) * amount) * lit;
           bb = (GREEN[2] + (col[2] - GREEN[2]) * amount) * lit;
