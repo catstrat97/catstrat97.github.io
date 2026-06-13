@@ -219,13 +219,14 @@ a { color: inherit; text-decoration: none; }
 /* Box each rail LINE (not the group) so each reads over the noise. */
 .rail-socials { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .rail-socials a,
-.rail-clock,
-.rail-coords > span { background: var(--bg); padding: 1px 4px; }
+.rail-clock span,
+.rail-coords span { background: var(--bg); padding: 1px 4px; }
+.rail-clock span,
+.rail-coords span { display: inline-block; }
 .rail-socials a { transition: opacity 0.2s ease; }
 .rail-socials a:hover { opacity: 0.6; }
-.rail-clock { line-height: 1.2; white-space: nowrap; align-self: flex-start; }
-.rail-coords { line-height: 1.4; white-space: nowrap; }
-.rail-coords > span { display: inline-block; }
+.rail-clock { line-height: 1.5; white-space: nowrap; align-self: flex-start; }
+.rail-coords { line-height: 1.5; white-space: nowrap; }
 
 /* ── Projects ───────────────────────────────────────────────── */
 .projects { background: var(--bg); }

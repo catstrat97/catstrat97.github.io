@@ -41,7 +41,9 @@
     nodes.forEach(function (el) {
       var mode = el.getAttribute('data-clock');
       if (mode === 'stamp') {
-        el.innerHTML = dateStr + '<br>' + timeStr;
+        // Per-line spans so each line gets its own legibility box and can
+        // cipher in independently on load (without losing the line break).
+        el.innerHTML = '<span>' + dateStr + '</span><br><span>' + timeStr + '</span>';
       } else if (mode === 'date') {
         el.textContent = now.toLocaleDateString('en-US', {
           year: 'numeric', month: 'short', day: 'numeric',
@@ -57,7 +59,9 @@
   }
 
   render();
-  setInterval(render, 1000);
+  // Defer recurring updates so the load-in cipher (which targets the clock
+  // spans) can finish without being clobbered mid-scramble.
+  setTimeout(function () { render(); setInterval(render, 15000); }, 4500);
 })();
 
 /* ── 3. Cipher text interaction ─────────────────────────────────
@@ -347,7 +351,8 @@
 
   function runLoadIn() {
     if (!document.documentElement.classList.contains('preload')) { markReady(); return; }
-    var sel = ['.brand', '.main-nav a', '.status span', '.intro .char', '.rail-socials a'];
+    var sel = ['.brand', '.main-nav a', '.status span', '.intro .char',
+      '.rail-socials a', '.rail-clock span', '.rail-coords span'];
     scrambleIn(document.querySelectorAll(sel.join(',')), markReady);
     document.documentElement.classList.remove('preload');
   }
@@ -381,8 +386,9 @@
   if (!ctx) return;
 
   var GREEN = [3, 254, 151];
-  var GREY = [150, 150, 150];        // movement-only accent
-  var AMBER = [255, 174, 44];        // #FFAE2C — movement-only accent
+  var GREY = [150, 150, 150];        // movement accent (mid stages)
+  var AMBER = [255, 174, 44];        // #FFAE2C — movement accent
+  var WHITE = [236, 236, 236];       // deepest stage accent
   var MONO = "'IBM Plex Mono', monospace";
   var CELL = 20;
   var SW = 0, SH = 0, cols = 0, rows = 0;
@@ -392,7 +398,7 @@
   // the colour lerp + cipher reveal); it relaxes back to 0 (calm/rest) when the
   // pointer goes idle. `glitchT` is a rare, self-decaying glitch BURST that
   // occasionally fires while moving — a one-off cipher sweep, not a held state.
-  var interact = 0, energy = 0, glitchT = 0;
+  var interact = 0, energy = 0, glitchT = 0, heat = 0;
   document.addEventListener('mousemove', function () { interact = 1; });
 
   function resize() {
@@ -428,12 +434,30 @@
     };
   })();
 
-  /* Glyph sets. REST_STROKE = the calm box-drawing wave the stroke runs at all
-     times; GLITCH_SET = the block/box glyphs used ONLY on rapid movement;
-     DIGITS = what the interior ciphers into when the cursor moves. */
-  var REST_STROKE = '─│┌┐└┘├┤┼┴┬═║'.split('');
+  /* Glyph sets. REST_STROKE = the calm wave the stroke runs at rest (box-drawing
+     plus a few numbers, dots & dashes for texture); GLITCH_SET = the glitch-burst
+     glyphs; BLOCK_SET = the solid blocks the field ciphers through at the deep
+     colour stage; DIGITS = what the interior ciphers into when the cursor moves. */
+  var REST_STROKE = '─│┌┐└┘├┤┼┴┬═║·.-–—=017'.split('');
   var GLITCH_SET = '░▒▓─│┌'.split('');
+  var BLOCK_SET = '█▓▒░'.split('');
   var DIGITS = '0123456789'.split('');
+
+  /* Colour journey as hover deepens (driven by `heat`): the stroke runs
+     green → amber → grey → white, the interior green → amber → grey. Stroke and
+     fill always read different stages, so they stay distinct colours. */
+  var STROKE_STOPS = [GREEN, AMBER, GREY, WHITE];
+  var FILL_STOPS = [GREEN, AMBER, GREY, GREY];
+  var _col = [0, 0, 0];
+  function grad(stops, t) {
+    if (t < 0) t = 0; else if (t > 1) t = 1;
+    var s = t * 3, i = s < 1 ? 0 : (s < 2 ? 1 : 2), f = s - i;
+    var a = stops[i], b = stops[i + 1];
+    _col[0] = a[0] + (b[0] - a[0]) * f;
+    _col[1] = a[1] + (b[1] - a[1]) * f;
+    _col[2] = a[2] + (b[2] - a[2]) * f;
+    return _col;
+  }
 
   /* Word bitmap (offscreen), high-res. wbFill is a BLURRED soft field of the
      solid letterform: a smooth interior-distance ramp (0 outside → 1 deep
@@ -522,6 +546,10 @@
     // Ease the interaction energy (cursor active → 1, idle → 0).
     interact *= 0.90;
     energy += (interact - energy) * 0.12;
+    // `heat` builds slowly while the cursor keeps moving (sustained hover →
+    // deeper colour stages) and bleeds off when idle.
+    var hTarget = energy > 0.35 ? 1 : 0;
+    heat += (hTarget - heat) * (hTarget > heat ? 0.006 : 0.02);
     // Rare glitch burst: while the cursor is moving, occasionally kick off a
     // self-decaying cipher sweep (≈ once every several seconds of movement).
     if (energy > 0.2 && glitchT <= 0 && Math.random() < 0.010) glitchT = 1;
@@ -542,6 +570,12 @@
     // hover. Indexing glyphs by the wave (not at random) reads like a sequencer.
     var restT = now * 0.0026, hoverT = now * 0.018, colorT = now * 0.0012;
     var e = energy * energy * (3 - 2 * energy);   // smoothstep interaction amount
+    // Colour-stage progress: quick hover reaches the green→amber stage; sustained
+    // hover (heat) pushes on through grey to white. Block-cipher moment blooms as
+    // the field passes the middle (grey) stage.
+    var cp = Math.min(1, e * 0.34 + heat * 0.9);
+    var bd = (cp - 0.66) / 0.10;
+    var blockBump = (bd > -1 && bd < 1) ? (1 - bd * bd) : 0;
 
     var wW = SW * 0.92, wH = wW * (WB_H / WB_W);
     var ox = (SW - wW) / 2, oy = (SH - wH) / 2;
@@ -560,60 +594,54 @@
         var isCore = vf > CORE_T;            // interior (dots) vs stroke band
 
         var lit = 0.32 + 0.68 * vf;
-        var ch, rr, gg, bb;
+        var ch, rr, gg, bb, col;
 
         // Per-cell hash + flowing curve drive the staggered cipher reveal and
-        // give every cell its own smooth colour-lerp timing (organic, not uniform).
+        // give every cell its own colour-stage offset (organic, not uniform).
         var hsh = Math.sin(c * 12.9898 + r * 78.233) * 43758.5453;
         hsh -= Math.floor(hsh);
         var curve = Math.sin(colorT + c * 0.5 + r * 0.3) * 0.5 + 0.5;
         var prog = energy * 1.7 - hsh * 0.7;
         if (prog < 0) prog = 0; else if (prog > 1) prog = 1;
+        var cpc = cp + (curve - 0.5) * 0.16;        // per-cell colour-stage jitter
 
-        // The glitch burst is a thin band of cells (by hash) that sweeps as the
-        // pulse decays — a one-off cipher, coloured (never grey).
+        // Glitch burst = thin hash band that sweeps as the pulse decays. Block
+        // moment = field-wide cipher into solid blocks as cp crosses the grey
+        // stage. Both are coloured by the gradient (never flat grey).
         var inGlitch = glitchT > 0 && Math.abs(hsh - (1 - glitchT)) < 0.12;
+        var inBlock = blockBump > 0 && hsh < blockBump;
 
         if (isCore) {
-          // INTERIOR (fill): rest = dim dots; movement ciphers them into GREEN
-          // digits, with the odd cell drifting grey.
-          if (prog < 0.12 && !inGlitch) {
+          // INTERIOR (fill): rest = dim dots; movement ciphers into digits whose
+          // colour rides FILL_STOPS (green → amber → grey).
+          if (prog < 0.12 && !inGlitch && !inBlock) {
             ch = '·';
             var grey = (0.10 + 0.16 * vf) * 255;
             rr = grey * 0.7; gg = grey; bb = grey * 0.85;
           } else {
             var gf = Math.sin(hoverT + c + r) * 0.5 + 0.5;
-            ch = inGlitch
-              ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gf * GLITCH_SET.length) | 0)]
-              : (prog < 0.85 ? DIGITS[(frameN + c * 2 + r * 3) % 10]
-                             : DIGITS[(c * 7 + r * 13 + wordPtr) % 10]);
-            var fr = GREY[0] + (GREEN[0] - GREY[0]) * prog;
-            var fg = GREY[1] + (GREEN[1] - GREY[1]) * prog;
-            var fb = GREY[2] + (GREEN[2] - GREY[2]) * prog;
-            if (hsh > 0.84) {                       // occasional grey drift
-              var gmf = e * (0.3 + 0.5 * curve);
-              fr += (GREY[0] - fr) * gmf; fg += (GREY[1] - fg) * gmf; fb += (GREY[2] - fb) * gmf;
-            }
-            rr = fr * lit; gg = fg * lit; bb = fb * lit;
+            ch = inBlock
+              ? BLOCK_SET[Math.min(BLOCK_SET.length - 1, (curve * BLOCK_SET.length) | 0)]
+              : inGlitch
+                ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gf * GLITCH_SET.length) | 0)]
+                : (prog < 0.85 ? DIGITS[(frameN + c * 2 + r * 3) % 10]
+                               : DIGITS[(c * 7 + r * 13 + wordPtr) % 10]);
+            col = grad(FILL_STOPS, cpc);
+            var fb2 = 0.45 + 0.55 * prog;           // ease brightness in by reveal
+            rr = col[0] * lit * fb2; gg = col[1] * lit * fb2; bb = col[2] * lit * fb2;
           }
         } else {
-          // STROKE (band): parametric box-drawing wave; colour lerps GREEN→AMBER
-          // with movement (per-cell curve), the odd cell drifting grey. Glitch
-          // burst swaps glyphs only — colour stays amber.
+          // STROKE (band): box-drawing wave; colour rides STROKE_STOPS
+          // (green → amber → grey → white). Block/glitch swap glyphs only.
           var gj = Math.sin(hoverT * 1.3 + c * 0.7 + r * 0.5) * 0.5 + 0.5;
           var wp = Math.sin(restT + c * 0.5 + r * 0.32) * 0.5 + 0.5;
-          ch = inGlitch
-            ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gj * GLITCH_SET.length) | 0)]
-            : REST_STROKE[Math.min(REST_STROKE.length - 1, (wp * REST_STROKE.length) | 0)];
-          var amt = e * (0.35 + 0.65 * curve);
-          var sr = GREEN[0] + (AMBER[0] - GREEN[0]) * amt;
-          var sg = GREEN[1] + (AMBER[1] - GREEN[1]) * amt;
-          var sb = GREEN[2] + (AMBER[2] - GREEN[2]) * amt;
-          if (hsh < 0.16) {                         // occasional grey drift
-            var gms = e * (0.3 + 0.5 * curve);
-            sr += (GREY[0] - sr) * gms; sg += (GREY[1] - sg) * gms; sb += (GREY[2] - sb) * gms;
-          }
-          rr = sr * lit; gg = sg * lit; bb = sb * lit;
+          ch = inBlock
+            ? BLOCK_SET[Math.min(BLOCK_SET.length - 1, ((1 - curve) * BLOCK_SET.length) | 0)]
+            : inGlitch
+              ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gj * GLITCH_SET.length) | 0)]
+              : REST_STROKE[Math.min(REST_STROKE.length - 1, (wp * REST_STROKE.length) | 0)];
+          col = grad(STROKE_STOPS, cpc);
+          rr = col[0] * lit; gg = col[1] * lit; bb = col[2] * lit;
         }
         var f = bw * introFade;
         ctx.fillStyle = 'rgb(' + clamp(rr * f) + ',' + clamp(gg * f) + ',' + clamp(bb * f) + ')';
