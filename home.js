@@ -26,7 +26,7 @@
 
   // Fixed filter set for now (matches the Figma toolbar). Matched against the
   // project tags case-insensitively.
-  var FILTER_TAGS = ['Identity', 'Motion', 'Poster', 'Test'];
+  var FILTER_TAGS = ['Identity', 'Poster', 'Motion', 'Test'];
 
   function filtered() {
     if (!state.activeTag) return state.projects;

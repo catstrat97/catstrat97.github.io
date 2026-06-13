@@ -18,8 +18,11 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-  /* Shared list/toolbar column grid (Figma 37 / 30.5 / role) */
-  --col-year: 37%;
+  /* Shared list/toolbar column grid (Figma 37 / 30.5 / role).
+     Year trimmed to 32% so the toolbar's filter row fits the Figma 16px
+     chip gaps on one line at common (≤1440px) widths; the year column is
+     mostly empty space so the table reads the same. */
+  --col-year: 32%;
   --col-name: 30.5%;
   --row-pad-x: 24px;
 }
@@ -257,7 +260,7 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
 }
 .filter-label { white-space: nowrap; }
-.filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 16px; }
 .filter-chips button {
   font-family: var(--font-mono);
   font-weight: 600;
@@ -265,14 +268,19 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   background: none;
   border: none;
-  padding: 0;
+  padding: 0 2px;
   cursor: none;
   color: var(--bg);
-  opacity: 0.55;
   transition: opacity 0.18s ease;
 }
-.filter-chips button:hover,
-.filter-chips button[aria-pressed='true'] { opacity: 1; }
+.filter-chips button:hover { opacity: 0.6; }
+.filter-chips button[aria-pressed='true'] {
+  background: var(--bg);
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 4px;
+  opacity: 1;
+}
 
 /* Muted table header (Year hidden, Name/Role at 40%) */
 .table-head {
