@@ -399,6 +399,7 @@
   // pointer goes idle. `glitchT` is a rare, self-decaying glitch BURST that
   // occasionally fires while moving — a one-off cipher sweep, not a held state.
   var interact = 0, energy = 0, glitchT = 0, heat = 0;
+  var cyclePhase = 0, wasEngaged = false;
   document.addEventListener('mousemove', function () { interact = 1; });
 
   function resize() {
@@ -443,19 +444,19 @@
   var BLOCK_SET = '█▓▒░'.split('');
   var DIGITS = '0123456789'.split('');
 
-  /* Colour journey as hover deepens (driven by `heat`). The fill LAGS the stroke
-     by one stage so the two are never the same colour at once:
-       stroke:  green → amber → grey  → white
-       fill:    green → green → amber → grey
-     i.e. stroke amber / fill green, then stroke grey / fill amber, then stroke
-     white / fill grey. */
-  var STROKE_STOPS = [GREEN, AMBER, GREY, WHITE];
-  var FILL_STOPS = [GREEN, GREEN, AMBER, GREY];
+  /* Looping colour cycle: green → amber → grey → white → green … While the
+     cursor is engaged a free-running phase walks this ring (faster the longer
+     you hover), so the colours keep interpolating instead of stopping. The
+     stroke is read one colour AHEAD of the fill, so the two are always a
+     distinct stage apart (stroke amber / fill green, stroke grey / fill amber,
+     stroke white / fill grey, …). */
+  var CYCLE = [GREEN, AMBER, GREY, WHITE];
   var _col = [0, 0, 0];
-  function grad(stops, t) {
-    if (t < 0) t = 0; else if (t > 1) t = 1;
-    var s = t * 3, i = s < 1 ? 0 : (s < 2 ? 1 : 2), f = s - i;
-    var a = stops[i], b = stops[i + 1];
+  function gradLoop(t) {
+    t -= Math.floor(t);                       // wrap to 0..1
+    var n = CYCLE.length, s = t * n;
+    var i = Math.floor(s) % n, j = (i + 1) % n, f = s - Math.floor(s);
+    var a = CYCLE[i], b = CYCLE[j];
     _col[0] = a[0] + (b[0] - a[0]) * f;
     _col[1] = a[1] + (b[1] - a[1]) * f;
     _col[2] = a[2] + (b[2] - a[2]) * f;
@@ -557,6 +558,14 @@
     // self-decaying cipher sweep (≈ once every several seconds of movement).
     if (energy > 0.2 && glitchT <= 0 && Math.random() < 0.010) glitchT = 1;
     glitchT = glitchT > 0 ? glitchT - 0.045 : 0;
+    // Colour cycle: a free-running phase that walks the GREEN→AMBER→GREY→WHITE
+    // ring and loops forever. It only advances while the cursor is engaged
+    // (sustained hover = faster walk via heat); it resets when re-engaging from
+    // idle so the journey restarts at green each time.
+    var engaged = energy > 0.25;
+    if (engaged && !wasEngaged) cyclePhase = 0;
+    wasEngaged = engaged;
+    if (engaged) cyclePhase += 0.006 + 0.012 * heat;
 
     // word scramble timing
     frameN++;
@@ -573,12 +582,14 @@
     // hover. Indexing glyphs by the wave (not at random) reads like a sequencer.
     var restT = now * 0.0026, hoverT = now * 0.018, colorT = now * 0.0012;
     var e = energy * energy * (3 - 2 * energy);   // smoothstep interaction amount
-    // Colour-stage progress: quick hover reaches the green→amber stage; sustained
-    // hover (heat) pushes on through grey to white. Block-cipher moment blooms as
-    // the field passes the middle (grey) stage.
-    var cp = Math.min(1, e * 0.34 + heat * 0.9);
-    var bd = (cp - 0.66) / 0.10;
-    var blockBump = (bd > -1 && bd < 1) ? (1 - bd * bd) : 0;
+    // `amount` = how far the colours pull away from green (0 at rest → 1 deep
+    // hover). The hue itself is driven by the looping cyclePhase, not a clamped
+    // progress, so it never freezes on grey/white — it keeps interpolating.
+    var amount = e;
+    // Block-cipher moment blooms each time the cycle crosses the grey stage.
+    var pf = cyclePhase - Math.floor(cyclePhase);
+    var bd = (pf - 0.5) / 0.08;
+    var blockBump = (bd > -1 && bd < 1) ? (1 - bd * bd) * amount : 0;
 
     var wW = SW * 0.92, wH = wW * (WB_H / WB_W);
     var ox = (SW - wW) / 2, oy = (SH - wH) / 2;
@@ -606,17 +617,17 @@
         var curve = Math.sin(colorT + c * 0.5 + r * 0.3) * 0.5 + 0.5;
         var prog = energy * 1.7 - hsh * 0.7;
         if (prog < 0) prog = 0; else if (prog > 1) prog = 1;
-        var cpc = cp + (curve - 0.5) * 0.16;        // per-cell colour-stage jitter
+        var jit = (curve - 0.5) * 0.10;             // per-cell colour-stage jitter
 
         // Glitch burst = thin hash band that sweeps as the pulse decays. Block
-        // moment = field-wide cipher into solid blocks as cp crosses the grey
+        // moment = field-wide cipher into solid blocks as the cycle crosses grey
         // stage. Both are coloured by the gradient (never flat grey).
         var inGlitch = glitchT > 0 && Math.abs(hsh - (1 - glitchT)) < 0.12;
         var inBlock = blockBump > 0 && hsh < blockBump;
 
         if (isCore) {
           // INTERIOR (fill): rest = dim dots; movement ciphers into digits whose
-          // colour rides FILL_STOPS (green → amber → grey).
+          // colour rides the looping ring (green → amber → grey → white …).
           if (prog < 0.12 && !inGlitch && !inBlock) {
             ch = '·';
             var grey = (0.10 + 0.16 * vf) * 255;
@@ -629,13 +640,16 @@
                 ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gf * GLITCH_SET.length) | 0)]
                 : (prog < 0.85 ? DIGITS[(frameN + c * 2 + r * 3) % 10]
                                : DIGITS[(c * 7 + r * 13 + wordPtr) % 10]);
-            col = grad(FILL_STOPS, cpc);
+            // FILL rides the loop; blended out from green by `amount`.
+            col = gradLoop(cyclePhase + jit);
             var fb2 = 0.45 + 0.55 * prog;           // ease brightness in by reveal
-            rr = col[0] * lit * fb2; gg = col[1] * lit * fb2; bb = col[2] * lit * fb2;
+            rr = (GREEN[0] + (col[0] - GREEN[0]) * amount) * lit * fb2;
+            gg = (GREEN[1] + (col[1] - GREEN[1]) * amount) * lit * fb2;
+            bb = (GREEN[2] + (col[2] - GREEN[2]) * amount) * lit * fb2;
           }
         } else {
-          // STROKE (band): box-drawing wave; colour rides STROKE_STOPS
-          // (green → amber → grey → white). Block/glitch swap glyphs only.
+          // STROKE (band): box-drawing wave; colour rides the looping ring one
+          // stage ahead of the fill. Block/glitch swap glyphs only.
           var gj = Math.sin(hoverT * 1.3 + c * 0.7 + r * 0.5) * 0.5 + 0.5;
           var wp = Math.sin(restT + c * 0.5 + r * 0.32) * 0.5 + 0.5;
           ch = inBlock
@@ -643,8 +657,12 @@
             : inGlitch
               ? GLITCH_SET[Math.min(GLITCH_SET.length - 1, (gj * GLITCH_SET.length) | 0)]
               : REST_STROKE[Math.min(REST_STROKE.length - 1, (wp * REST_STROKE.length) | 0)];
-          col = grad(STROKE_STOPS, cpc);
-          rr = col[0] * lit; gg = col[1] * lit; bb = col[2] * lit;
+          // STROKE rides the loop one stage AHEAD of the fill (+0.25), so the
+          // band and the interior are never the same colour; blended from green.
+          col = gradLoop(cyclePhase + 0.25 + jit);
+          rr = (GREEN[0] + (col[0] - GREEN[0]) * amount) * lit;
+          gg = (GREEN[1] + (col[1] - GREEN[1]) * amount) * lit;
+          bb = (GREEN[2] + (col[2] - GREEN[2]) * amount) * lit;
         }
         var f = bw * introFade;
         ctx.fillStyle = 'rgb(' + clamp(rr * f) + ',' + clamp(gg * f) + ',' + clamp(bb * f) + ')';
