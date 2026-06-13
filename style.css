@@ -174,10 +174,9 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.0;
   text-transform: uppercase;
   color: var(--green);
-  /* Solid panel so the paragraph stays legible over the noise field. */
-  background: var(--bg);
-  padding: 12px 14px;
 }
+/* Legibility over the noise: box each WORD, not the whole paragraph. */
+.intro .word { background: var(--bg); padding: 1px 3px; }
 .intro-link {
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -217,15 +216,16 @@ a { color: inherit; text-decoration: none; }
   color: var(--green);
   text-transform: uppercase;
 }
-/* Each rail group gets its own solid panel so it reads over the noise. */
-.rail-socials,
+/* Box each rail LINE (not the group) so each reads over the noise. */
+.rail-socials { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.rail-socials a,
 .rail-clock,
-.rail-coords { background: var(--bg); padding: 10px 12px; }
-.rail-socials { display: flex; flex-direction: column; gap: 8px; }
+.rail-coords > span { background: var(--bg); padding: 1px 4px; }
 .rail-socials a { transition: opacity 0.2s ease; }
 .rail-socials a:hover { opacity: 0.6; }
-.rail-clock { line-height: 1.2; white-space: nowrap; }
-.rail-coords { line-height: 1.2; white-space: nowrap; }
+.rail-clock { line-height: 1.2; white-space: nowrap; align-self: flex-start; }
+.rail-coords { line-height: 1.4; white-space: nowrap; }
+.rail-coords > span { display: inline-block; }
 
 /* ── Projects ───────────────────────────────────────────────── */
 .projects { background: var(--bg); }
