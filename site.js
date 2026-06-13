@@ -76,9 +76,11 @@
 
   var MONO = "'IBM Plex Mono', ui-monospace, monospace";
 
-  // Box-drawing + block glyphs (full monospace cell) — the cipher alphabet.
-  var CIPHER = ('║╗╝╚╔╣╠╦╩╬═│┤┐└┴┬├─┼┘┌╪╫╧╨╤╥╙╘╒╓╢╖╞╟╕╛╜╚╬' +
-    '░▒▓█▄▀▌▐').split('');
+  // The cipher cycles these SEQUENTIALLY (not at random) so every character
+  // moves in sync and the decode reads as one controlled sweep, not noise.
+  // Phase 1: box-drawing glyphs · Phase 2: solid blocks · then resolve.
+  var DECODE_BOX = '─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬'.split('');
+  var DECODE_BLOCK = '░▒▓█'.split('');
 
   // Odometer set the load-in spins through before resolving to the real char.
   var SCRAMBLE_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
@@ -162,17 +164,19 @@
     });
   }
 
-  /* ── The cipher: flicker a char through box glyphs, then resolve ── */
+  /* ── The cipher: flick a char through box → block glyphs, then resolve ──
+     The glyph sets are stepped through IN ORDER (step % len), so a run of
+     characters decodes in lock-step — a clean travelling wave rather than
+     random static. Callers set dataset.active before scheduling. */
   function decodeChar(el) {
-    if (el.dataset.active === 'true') return;
-    el.dataset.active = 'true';
     el.dataset.originalChar = el.textContent;
     lockBox(el);
-    var step = 0, STEPS = 11;
+    var step = 0, BOX = 12, BLOCK = 4;
     var iv = setInterval(function () {
-      if (step < STEPS) {
-        // Same monospace cell + a full-cell box glyph → perfectly boxed.
-        applyGlyph(el, CIPHER[(Math.random() * CIPHER.length) | 0], '1em');
+      if (step < BOX) {
+        applyGlyph(el, DECODE_BOX[step % DECODE_BOX.length], '1em');
+      } else if (step < BOX + BLOCK) {
+        applyGlyph(el, DECODE_BLOCK[(step - BOX) % DECODE_BLOCK.length], '0.8em');
       } else {
         clearInterval(iv); el._glyphInterval = null;
         unlockBox(el, el.dataset.originalChar);
@@ -181,37 +185,43 @@
         return;
       }
       step++;
-    }, 34);
+    }, 35);
     el._glyphInterval = iv;
   }
 
-  /* Hover → cipher the characters within a radius of the cursor (staggered). */
+  /* Hover → decode the characters within a tight radius of the cursor,
+     staggered by distance so the effect trails out from the pointer. The
+     elliptical (radius/2) test keeps the hit area small and controlled. */
   function onMove(paragraph, e) {
     if (!ready) return;
     var rect = paragraph.getBoundingClientRect();
     var mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-    var radius = 90;
+    var radius = 100;
     var hits = [];
     (paragraph._chars || []).forEach(function (char) {
       if (char.dataset.active === 'true') return;
       var cr = char.getBoundingClientRect();
       var cx = cr.left + cr.width / 2 - rect.left;
       var cy = cr.top + cr.height / 2 - rect.top;
-      var dx = (cx - mouseX), dy = (cy - mouseY);
+      var dx = (cx - mouseX) / (radius / 2);
+      var dy = (cy - mouseY) / (radius / 2);
       var d = dx * dx + dy * dy;
-      if (d <= radius * radius) hits.push({el: char, d: d});
+      if (d <= 1) hits.push({el: char, d: d});
     });
     hits.sort(function (a, b) { return a.d - b.d; });
     hits.forEach(function (h, i) {
+      h.el.dataset.active = 'true';
       setTimeout(function () { decodeChar(h.el); }, i * 14);
     });
   }
 
-  /* Click → run a full staggered cipher sweep over the whole block. */
+  /* Click → run a full staggered decode sweep over the whole block. */
   document.addEventListener('click', function () {
     if (!ready) return;
     targets.forEach(function (p) {
       (p._chars || []).forEach(function (c, i) {
+        if (c.dataset.active === 'true') return;
+        c.dataset.active = 'true';
         setTimeout(function () { decodeChar(c); }, i * 9);
       });
     });
@@ -371,6 +381,13 @@
   var SW = 0, SH = 0, cols = 0, rows = 0;
   var fieldBuf;
 
+  // Interaction reveal: the letters' interiors sit near-background grey at rest
+  // and "pop" to green as the user moves the cursor anywhere on the page. The
+  // stroke (dithered edges/trail) stays green throughout.
+  var interact = 0;      // raw pulse, set to 1 on each mousemove
+  var energy = 0;        // eased 0..1 reveal driven from `interact`
+  document.addEventListener('mousemove', function () { interact = 1; });
+
   function resize() {
     SW = Math.max(1, stage.clientWidth);
     SH = Math.max(1, stage.clientHeight);
@@ -466,6 +483,11 @@
     var introFade = Math.min(1, (now - startTime) / 2500);
     introFade = introFade * introFade * (3 - 2 * introFade);
 
+    // Ease the interaction reveal: cursor activity lifts `energy` toward 1,
+    // and it relaxes back to grey when the pointer goes idle.
+    interact *= 0.90;
+    energy += (interact - energy) * 0.12;
+
     // word scramble timing
     frameN++;
     if (frameN % 90 === 0) { pickWord(WORDS[wordPtr]); wordPtr = (wordPtr + 1) % WORDS.length; }
@@ -495,12 +517,25 @@
         var ramp = ((c + r) & 1) ? RAMP_A : RAMP_B;
         var ch = ramp[Math.min(ramp.length - 1, (val * ramp.length) | 0)];
         if (ch === ' ') continue;
-        // Locked green: brightness rides the field value (dim trail → bright core).
-        var g = (0.28 + 0.72 * val) * bw * introFade;
+        // Stroke vs fill split by intensity (solid interior = val > 0.92).
+        //   stroke (edges/trail) → green, brightness rides the field value;
+        //   fill   (interior)    → dim grey at rest, lerps to green with energy.
+        var lit = 0.28 + 0.72 * val;             // field brightness 0..1
+        var rr, gg, bb;
+        if (val > 0.92) {
+          var grey = (0.10 + 0.25 * val) * 255;  // near-background grey interior
+          var e = energy;
+          rr = grey * (1 - e) + GREEN[0] * lit * e;
+          gg = grey * (1 - e) + GREEN[1] * lit * e;
+          bb = grey * (1 - e) + GREEN[2] * lit * e;
+        } else {
+          rr = GREEN[0] * lit; gg = GREEN[1] * lit; bb = GREEN[2] * lit;
+        }
+        var f = bw * introFade;
         ctx.fillStyle = 'rgb(' +
-          Math.max(0, Math.min(255, Math.round(GREEN[0] * g))) + ',' +
-          Math.max(0, Math.min(255, Math.round(GREEN[1] * g))) + ',' +
-          Math.max(0, Math.min(255, Math.round(GREEN[2] * g))) + ')';
+          Math.max(0, Math.min(255, Math.round(rr * f))) + ',' +
+          Math.max(0, Math.min(255, Math.round(gg * f))) + ',' +
+          Math.max(0, Math.min(255, Math.round(bb * f))) + ')';
         ctx.fillText(ch, c * CELL, r * CELL);
       }
     }

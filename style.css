@@ -14,16 +14,19 @@
   --fs-intro: 24px;
 
   --header-h: 72px;
+  /* Right-hand column width — shared by the header status box and the hero
+     rail so their green dividers line up vertically. */
+  --rail-w: 244px;
 
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* Shared list/toolbar column grid (Figma 37 / 30.5 / role).
-     Year trimmed to 32% so the toolbar's filter row fits the Figma 16px
-     chip gaps on one line at common (≤1440px) widths; the year column is
-     mostly empty space so the table reads the same. */
-  --col-year: 32%;
-  --col-name: 30.5%;
+     Year is the wide left margin; Name is generous so long titles never
+     crowd the Role column, which still has room for the toolbar filter row. */
+  --col-year: 26%;
+  --col-name: 33%;
+  --col-gap: 24px;
   --row-pad-x: 24px;
 }
 
@@ -122,7 +125,8 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 48px 0 24px;
+  width: var(--rail-w);
+  padding: 0 24px;
   background: var(--bg);
   color: var(--green);
   border-left: 1px solid var(--green);
@@ -142,7 +146,7 @@ a { color: inherit; text-decoration: none; }
 /* ── Hero (intro / noise stage / rail) ──────────────────────── */
 .hero {
   display: grid;
-  grid-template-columns: minmax(420px, 612px) 1fr 244px;
+  grid-template-columns: minmax(420px, 612px) 1fr var(--rail-w);
   min-height: max(640px, calc(100vh - var(--header-h)));
   background: var(--bg);
 }
@@ -215,7 +219,7 @@ a { color: inherit; text-decoration: none; }
 .project-row {
   display: grid;
   grid-template-columns: var(--col-year) var(--col-name) 1fr;
-  gap: 12px;
+  gap: var(--col-gap);
   align-items: center;
   padding: 8px var(--row-pad-x);
 }
