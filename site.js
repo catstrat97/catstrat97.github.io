@@ -443,11 +443,14 @@
   var BLOCK_SET = '█▓▒░'.split('');
   var DIGITS = '0123456789'.split('');
 
-  /* Colour journey as hover deepens (driven by `heat`): the stroke runs
-     green → amber → grey → white, the interior green → amber → grey. Stroke and
-     fill always read different stages, so they stay distinct colours. */
+  /* Colour journey as hover deepens (driven by `heat`). The fill LAGS the stroke
+     by one stage so the two are never the same colour at once:
+       stroke:  green → amber → grey  → white
+       fill:    green → green → amber → grey
+     i.e. stroke amber / fill green, then stroke grey / fill amber, then stroke
+     white / fill grey. */
   var STROKE_STOPS = [GREEN, AMBER, GREY, WHITE];
-  var FILL_STOPS = [GREEN, AMBER, GREY, GREY];
+  var FILL_STOPS = [GREEN, GREEN, AMBER, GREY];
   var _col = [0, 0, 0];
   function grad(stops, t) {
     if (t < 0) t = 0; else if (t > 1) t = 1;
