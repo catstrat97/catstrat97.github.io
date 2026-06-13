@@ -392,7 +392,7 @@
   var MONO = "'IBM Plex Mono', monospace";
   var CELL = 20;
   var SW = 0, SH = 0, cols = 0, rows = 0;
-  var fieldBuf;
+  var fieldBuf, hashBuf;
 
   // Interaction energy: cursor movement anywhere lifts `energy` toward 1 (drives
   // the colour lerp + cipher reveal); it relaxes back to 0 (calm/rest) when the
@@ -414,6 +414,15 @@
     cols = Math.ceil(SW / CELL);
     rows = Math.ceil(SH / CELL);
     fieldBuf = new Float32Array(cols * rows);
+    // Static per-cell hash (depends only on c,r) — precomputed so the draw loop
+    // doesn't run a Math.sin per cell every frame.
+    hashBuf = new Float32Array(cols * rows);
+    for (var hc = 0; hc < cols; hc++) {
+      for (var hr = 0; hr < rows; hr++) {
+        var h = Math.sin(hc * 12.9898 + hr * 78.233) * 43758.5453;
+        hashBuf[hc + hr * cols] = h - Math.floor(h);
+      }
+    }
   }
   var rt;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
@@ -472,7 +481,7 @@
   var INK_T = 0.14;                        // below → empty
   var CORE_T = 0.62;                       // above → interior (dots); between → stroke
   var wbCanvas = document.createElement('canvas');
-  var wbCtx = wbCanvas.getContext('2d');
+  var wbCtx = wbCanvas.getContext('2d', {willReadFrequently: true});
   var wbFill = new Float32Array(1);
   function renderWord(w) {
     wbCtx.font = WB_FONT;
@@ -610,10 +619,10 @@
         var lit = 0.32 + 0.68 * vf;
         var ch, rr, gg, bb, col;
 
-        // Per-cell hash + flowing curve drive the staggered cipher reveal and
-        // give every cell its own colour-stage offset (organic, not uniform).
-        var hsh = Math.sin(c * 12.9898 + r * 78.233) * 43758.5453;
-        hsh -= Math.floor(hsh);
+        // Per-cell hash (precomputed, static) + flowing curve drive the
+        // staggered cipher reveal and give every cell its own colour-stage
+        // offset (organic, not uniform).
+        var hsh = hashBuf[gIdx];
         var curve = Math.sin(colorT + c * 0.5 + r * 0.3) * 0.5 + 0.5;
         var prog = energy * 1.7 - hsh * 0.7;
         if (prog < 0) prog = 0; else if (prog > 1) prog = 1;
