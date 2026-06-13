@@ -1,60 +1,27 @@
 /* ============================================================
-   style.css — Shared design system (Sharang Sharma portfolio)
-   Used by index.html, project.html, about.html
+   style.css — Alt design direction (green / black, IBM Plex)
+   Home page implemented strictly from Figma node 583:65.
    ============================================================ */
-
-/* ── Fonts ──────────────────────────────────────────────────
-   Neue Haas Grotesk Display Pro. The Figma uses "55 Roman"
-   (weight 500) throughout; Medium/Bold are wired for headings.
-──────────────────────────────────────────────────────────── */
-@font-face {
-  font-family: 'Neue Haas Grotesk Display Pro';
-  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayLight.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Neue Haas Grotesk Display Pro';
-  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayRoman.ttf') format('truetype');
-  font-weight: 400 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Neue Haas Grotesk Display Pro';
-  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayMediu.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Neue Haas Grotesk Display Pro';
-  src: url('fonts/Neue%20Haas%20Grotesk/NeueHaasDisplayBold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 :root {
   --bg: #010101;
-  --header: #f6f6f6;
-  --intro-1: #bababa;
-  --intro-2: #e4e4e4;
-  --white: #ffffff;
-  --muted: rgba(255, 255, 255, 0.5);
-  --rule: #d9d9d9;
-  --hover: #989898;
-  --green: #35d07f;
+  --green: #03fe97;
+  --green-muted: #12f99b;
 
   --fs-base: 20px;
-  --fs-intro: clamp(32px, 4vw, 56px);
+  --fs-brand: 24px;
+  --fs-intro: 24px;
 
-  --pad-x: 28px;
-  --max-w: 1728px;
+  --header-h: 72px;
 
-  --font: 'Neue Haas Grotesk Display Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  /* Shared list/toolbar column grid (Figma 37 / 30.5 / role) */
+  --col-year: 37%;
+  --col-name: 30.5%;
+  --row-pad-x: 24px;
 }
 
 /* ── Reset / base ───────────────────────────────────────────── */
@@ -64,10 +31,10 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  padding: 32px var(--pad-x);
+  padding: 0;
   background-color: var(--bg);
-  color: var(--header);
-  font-family: var(--font);
+  color: var(--green);
+  font-family: var(--font-mono);
   font-weight: 500;
   font-size: var(--fs-base);
   line-height: 1;
@@ -78,92 +45,90 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
-/* Ambient noise-field canvas sits behind the content. */
-.noise-field {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.main-wrapper {
-  max-width: var(--max-w);
-  margin: 0 auto;
-  width: 100%;
-  position: relative;
-  z-index: 1;
-}
-
 /* ── Custom circular cursor ─────────────────────────────────── */
 .cursor {
   position: fixed;
   left: 0; top: 0;
-  width: 16px; height: 16px;
-  margin-left: -8px; margin-top: -8px;
+  width: 14px; height: 14px;
+  margin-left: -7px; margin-top: -7px;
   border-radius: 50%;
-  background: linear-gradient(45deg, rgb(25, 84, 149), rgb(32, 125, 60), rgb(230, 38, 36));
-  box-shadow:
-    0 0 10px rgba(25, 84, 149, 0.8),
-    0 0 20px rgba(32, 125, 60, 0.6),
-    0 0 30px rgba(230, 38, 36, 0.4),
-    0 0 40px rgba(25, 84, 149, 0.2);
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(3, 254, 151, 0.7), 0 0 22px rgba(3, 254, 151, 0.35);
   pointer-events: none;
   z-index: 9999;
   transform: translateZ(0);
   transition: transform 120ms ease, opacity 150ms ease;
 }
 
-/* ── Home load-in (staggered scramble reveal) ───────────────────
-   index.html adds `.preload` to <html> before first paint so the page
-   starts black; site.js removes it and decodes the intro text in. */
+/* ── Load-in (page starts black, text decodes in) ───────────── */
 .site-header,
-.projects,
-.site-footer { transition: opacity 0.8s ease; }
+.hero,
+.projects { transition: opacity 0.8s ease; }
 .preload .site-header,
-.preload .projects,
-.preload .site-footer,
-.preload .intro { opacity: 0; }
+.preload .hero,
+.preload .projects { opacity: 0; }
 
-/* ── Site header ────────────────────────────────────────────── */
+/* ── Header band ────────────────────────────────────────────── */
 .site-header {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 32px;
+  height: var(--header-h);
+  background: var(--green);
+  color: var(--bg);
 }
 
-.site-header .brand { color: var(--header); line-height: 1.75; }
-.site-header .brand a { transition: opacity 0.2s ease; }
-.site-header .brand a:hover { opacity: 0.55; }
-
-.header-right {
+.brand {
   display: flex;
-  align-items: flex-start;
-  gap: 112px;
+  align-items: center;
+  padding: 0 48px;
+  background: var(--bg);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: var(--fs-brand);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .main-nav {
   display: flex;
+  align-items: center;
+  gap: 8px 32px;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  width: 199px;
-  line-height: 1.75;
 }
-
-.main-nav a { color: var(--header); transition: opacity 0.2s ease; }
-.main-nav a:hover { opacity: 0.55; }
+.main-nav a {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--bg);
+  padding: 4px 2px;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+.main-nav a:hover { opacity: 0.6; }
+.main-nav a.is-active {
+  background: var(--bg);
+  color: var(--green);
+  padding: 4px 6px;
+}
+.main-nav a.is-active:hover { opacity: 1; }
 
 .status {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--header);
+  padding: 0 48px 0 24px;
+  background: var(--bg);
+  color: var(--green);
+  border-left: 1px solid var(--green);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 20px;
+  text-transform: uppercase;
   white-space: nowrap;
-  line-height: 1.75;
 }
-
 .status .dot {
   width: 14px; height: 14px;
   border-radius: 50%;
@@ -171,117 +136,172 @@ a { color: inherit; text-decoration: none; }
   flex: 0 0 auto;
 }
 
-/* ── Intro statement ────────────────────────────────────────── */
-.intro {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(40px, 6vw, 85px);
-  margin-top: clamp(64px, 9vw, 132px);
+/* ── Hero (intro / noise stage / rail) ──────────────────────── */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(420px, 612px) 1fr 244px;
+  min-height: max(640px, calc(100vh - var(--header-h)));
+  background: var(--bg);
 }
 
-.intro p {
+.hero-col { background: var(--bg); padding-top: 128px; }
+
+.hero-intro {
+  border-right: 1px solid var(--green);
+  padding-left: 48px;
+  padding-right: 24px;
+}
+.intro {
   margin: 0;
+  max-width: 540px;
+  font-family: var(--font-mono);
+  font-weight: 400;
   font-size: var(--fs-intro);
   line-height: 1.0;
-  font-weight: 500;
-  word-break: break-word;
-  max-width: 100%;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.intro-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: from-font;
 }
 
-.intro .intro-lead { color: var(--intro-1); }
-.intro .intro-current { color: var(--intro-2); }
-.intro .intro-current a { text-decoration: underline; text-underline-offset: 4px; }
-
-/* ── Char-flip text interaction ─────────────────────────────── */
-.text-fx .word { display: inline-block; white-space: nowrap; background-color: var(--bg); }
-.text-fx .char {
-  display: inline-block;
-  transition: transform 0.1s ease;
-  transform-origin: 50% 50%;
-  will-change: transform;
+/* The middle stage is transparent so the noise-field canvas (mounted into it)
+   reads as a framed monitor between the two green rules. */
+.hero-stage {
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+  padding-top: 0;
 }
-
-/* ── Projects toolbar (Grid/List + filter) ───────────────────
-   Shares the table's 3-column grid so Grid/List sits over the
-   Name column and Filter over the Role column. */
-/* Large intentional whitespace between intro and the list (per Figma). */
-.projects { margin-top: clamp(200px, 33vw, 500px); }
-
-.projects-toolbar {
-  display: grid;
-  grid-template-columns: var(--col-year) var(--col-name) var(--col-role);
-  align-items: center;
-  margin-bottom: clamp(48px, 6vw, 77px);
-}
-
-.view-toggle { display: flex; gap: 12px; }
-.view-toggle button {
-  font: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: none;
-  color: var(--muted);
-  transition: color 0.2s ease;
-}
-.view-toggle button[aria-pressed='true'] { color: var(--white); }
-
-.filter { display: flex; flex-wrap: wrap; gap: 8px 32px; align-items: center; }
-.filter .filter-label { color: var(--white); margin-right: 24px; }
-.filter-chips { display: flex; flex-wrap: wrap; gap: 8px 16px; }
-.filter-chips button {
-  font: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: none;
-  color: var(--muted);
-  transition: color 0.2s ease;
-}
-.filter-chips button:hover { color: var(--white); }
-.filter-chips button[aria-pressed='true'] { color: var(--white); }
-
-/* ── Projects: shared column grid (matches Figma 37.5/25/37.5) ── */
-:root { --col-year: 37.5%; --col-name: 25%; --col-role: 37.5%; }
-
-/* ── List (table) view ──────────────────────────────────────── */
-.projects-table {
+.hero-stage .noise-field {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  margin-top: 44px;
-  border-top: 1px solid var(--rule);
+  height: 100%;
+  display: block;
+  pointer-events: none;
 }
 
+.hero-rail {
+  border-left: 1px solid var(--green);
+  padding-left: 24px;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--green);
+  text-transform: uppercase;
+}
+.rail-socials { display: flex; flex-direction: column; gap: 8px; }
+.rail-socials a { transition: opacity 0.2s ease; }
+.rail-socials a:hover { opacity: 0.6; }
+.rail-clock { line-height: 1.2; white-space: nowrap; }
+.rail-coords { line-height: 1.2; white-space: nowrap; }
+
+/* ── Projects ───────────────────────────────────────────────── */
+.projects { background: var(--bg); }
+
+/* Shared 3-column grid for toolbar + table + rows */
+.projects-toolbar,
 .table-head,
 .project-row {
   display: grid;
-  grid-template-columns: var(--col-year) var(--col-name) var(--col-role);
-  align-items: start;
+  grid-template-columns: var(--col-year) var(--col-name) 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px var(--row-pad-x);
 }
 
+/* Toolbar band (green) */
+.projects-toolbar {
+  background: var(--green);
+  color: var(--bg);
+  font-weight: 600;
+}
+.projects-toolbar .tb-year {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.view-toggle { display: flex; align-items: center; gap: 8px; }
+.view-toggle button {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 20px;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: none;
+  color: var(--bg);
+}
+.view-toggle button[aria-pressed='true'] {
+  background: var(--bg);
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 4px;
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+.filter-label { white-space: nowrap; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-chips button {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 20px;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: none;
+  color: var(--bg);
+  opacity: 0.55;
+  transition: opacity 0.18s ease;
+}
+.filter-chips button:hover,
+.filter-chips button[aria-pressed='true'] { opacity: 1; }
+
+/* Muted table header (Year hidden, Name/Role at 40%) */
 .table-head {
-  color: var(--white);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  padding: 4px 0;
+  color: var(--green-muted);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
+.table-head .col-name,
+.table-head .col-role { opacity: 0.4; }
+.table-head .col-year { opacity: 0; }
 
-.year-group {
-  border-bottom: 1px solid var(--rule);
-  padding: 4px 0;
-}
-.year-group:not(:last-child) { margin-bottom: 44px; }
+/* Rows */
+.projects-table { width: 100%; }
+.projects-status { color: rgba(3, 254, 151, 0.5); padding: 16px var(--row-pad-x); }
 
-.projects-status {
-  color: var(--muted);
-  padding: 16px 0;
-}
+.year-group { border-top: 1px solid var(--green); }
+.year-group:last-child { border-bottom: 1px solid var(--green); }
+.year-group:not(:last-child) { margin-bottom: 96px; }
 
 .project-row {
-  color: var(--white);
-  padding: 4px 0;
+  color: var(--green);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 20px;
+  text-transform: uppercase;
 }
 .project-row:hover {
-  background-color: var(--hover);
+  background: var(--green);
   color: var(--bg);
 }
 
@@ -290,7 +310,7 @@ a { color: inherit; text-decoration: none; }
 .project-row .col-role { grid-column: 3; }
 
 /* ── Grid (masonry) view ────────────────────────────────────── */
-.projects-grid { display: none; width: 100%; }
+.projects-grid { display: none; width: 100%; padding: 0 var(--row-pad-x); }
 .projects-grid.is-active { display: flex; gap: 12px; }
 .projects-table.is-hidden { display: none; }
 
@@ -301,7 +321,6 @@ a { color: inherit; text-decoration: none; }
   flex: 1 1 0;
   min-width: 0;
 }
-
 .grid-link {
   display: block;
   position: relative;
@@ -311,13 +330,12 @@ a { color: inherit; text-decoration: none; }
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(1, 1, 1, 0);
+  background: rgba(3, 254, 151, 0);
   transition: background 0.25s ease;
   pointer-events: auto;
   z-index: 1;
 }
-.grid-link:hover::after { background: rgba(1, 1, 1, 0.25); }
-
+.grid-link:hover::after { background: rgba(3, 254, 151, 0.18); }
 .grid-link img,
 .grid-link video {
   display: block;
@@ -331,61 +349,52 @@ a { color: inherit; text-decoration: none; }
 .loading-placeholder .lazy-media { opacity: 0; }
 .loading-placeholder {
   min-height: 200px;
-  background: rgba(124, 124, 124, 0.15);
+  background: rgba(3, 254, 151, 0.08);
 }
 
-/* ── About: Input/Output divider ────────────────────────────── */
-.io-divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: clamp(40px, 6vw, 64px) 0 24px;
-  color: var(--white);
+/* ── Char-flip / cipher text spans ──────────────────────────── */
+.text-fx .word { display: inline-block; white-space: nowrap; }
+.text-fx .char {
+  display: inline-block;
+  transition: transform 0.1s ease;
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
-.io-rule { flex: 1 1 auto; height: 1px; background: var(--rule); }
-.io-label { flex: 0 0 auto; white-space: nowrap; }
-
-/* ── About: media grid ──────────────────────────────────────── */
-.media-grid { display: flex; gap: 12px; width: 100%; }
-.media-col {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1 1 0;
-  min-width: 0;
-}
-.media-col img,
-.media-col video {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* ── Footer ─────────────────────────────────────────────────── */
-.site-footer {
-  display: flex;
-  gap: clamp(48px, 12vw, 209px);
-  margin-top: clamp(80px, 12vw, 160px);
-  color: var(--white);
-}
-.footer-socials { display: flex; flex-direction: column; gap: 2px; }
-.footer-socials a:hover { opacity: 0.55; }
 
 /* ── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 800px) {
-  body { padding: 20px 16px; }
+@media (max-width: 1100px) {
+  :root { --col-year: 22%; --col-name: 40%; }
+  .hero { grid-template-columns: 1fr 220px; }
+  .hero-stage { display: none; }
+  .hero-intro { border-right: none; }
+}
+
+@media (max-width: 720px) {
   .cursor { display: none; }
   body { cursor: auto; }
 
-  :root { --col-year: 18%; --col-name: 42%; --col-role: 40%; }
+  :root { --fs-brand: 18px; --fs-intro: 18px; --row-pad-x: 16px; }
 
-  .header-right { gap: 24px; }
-  .main-nav { max-width: 160px; }
+  /* Stack the header band so the black blocks span full width (no green gaps). */
+  .site-header { flex-direction: column; align-items: stretch; height: auto; }
+  .brand { padding: 14px 16px; }
+  .main-nav { padding: 8px 16px 14px; gap: 8px 16px; background: var(--green); }
+  .status { padding: 12px 16px; border-left: none; }
 
-  .projects-toolbar { grid-template-columns: 1fr; gap: 16px; }
+  .hero { grid-template-columns: 1fr; min-height: 0; }
+  .hero-col { padding-top: 48px; padding-bottom: 48px; }
+  .hero-intro { padding-left: 16px; padding-right: 16px; }
+  .hero-rail { border-left: none; padding: 0 16px 48px; }
 
+  .main-nav a { font-size: 16px; }
+  .status, .view-toggle button, .filter, .filter-chips button { font-size: 16px; }
+
+  /* Stack the toolbar so the 10 filter chips wrap inside the green band. */
+  .projects-toolbar { grid-template-columns: 1fr; gap: 14px; }
+  .filter { flex-wrap: wrap; gap: 8px 20px; }
+  .filter-chips { gap: 8px 14px; }
+
+  :root { --col-year: 20%; --col-name: 44%; }
+  .project-row, .table-head { font-size: 16px; }
   .projects-grid.is-active { flex-direction: column; }
-  .media-grid { flex-direction: column; }
-
-  .text-fx .char { transition: transform 0.08s ease; }
 }

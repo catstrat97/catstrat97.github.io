@@ -24,10 +24,17 @@
     });
   }
 
+  // Fixed filter set for now (matches the Figma toolbar). Matched against the
+  // project tags case-insensitively.
+  var FILTER_TAGS = ['Identity', 'Motion', 'Poster', 'Test'];
+
   function filtered() {
     if (!state.activeTag) return state.projects;
+    var want = state.activeTag.toLowerCase();
     return state.projects.filter(function (p) {
-      return (p.tags || []).indexOf(state.activeTag) !== -1;
+      return (p.tags || []).some(function (t) {
+        return String(t).toLowerCase() === want;
+      });
     });
   }
 
@@ -141,12 +148,8 @@
   /* ── Filter chips ──────────────────────────────────────────── */
   function renderChips() {
     if (!chipsEl) return;
-    var tags = [];
-    state.projects.forEach(function (p) {
-      (p.tags || []).forEach(function (t) { if (tags.indexOf(t) === -1) tags.push(t); });
-    });
     chipsEl.innerHTML = '';
-    tags.forEach(function (tag) {
+    FILTER_TAGS.forEach(function (tag) {
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = tag;
