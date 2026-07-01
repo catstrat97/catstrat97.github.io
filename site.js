@@ -414,10 +414,16 @@
   function resize() {
     SW = Math.max(1, window.innerWidth);
     SH = Math.max(1, window.innerHeight);
-    canvas.width = SW;
-    canvas.height = SH;
+    // Size the backing store at the device pixel ratio (capped for perf) so the
+    // ASCII glyphs rasterise crisply on Retina / when zoomed, instead of being
+    // upscaled from a 1x canvas (which looked blurry). All drawing stays in CSS
+    // pixels — the context transform maps them to physical pixels.
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(SW * dpr);
+    canvas.height = Math.round(SH * dpr);
     canvas.style.width = SW + 'px';
     canvas.style.height = SH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.font = '15px ' + MONO;
     ctx.textBaseline = 'top';
     cols = Math.ceil(SW / CELL);
