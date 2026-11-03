@@ -43,7 +43,14 @@ createServer(async (req, res) => {
       res.writeHead(403).end('Directory listing disabled')
       return
     }
-    res.writeHead(200, {'Content-Type': TYPES[path.extname(full).toLowerCase()] || 'application/octet-stream'})
+    res.writeHead(200, {
+      'Content-Type': TYPES[path.extname(full).toLowerCase()] || 'application/octet-stream',
+      // Dev server: never let the browser cache. Without this (and with no
+      // ETag/Last-Modified) Chrome caches JS/CSS heuristically and keeps
+      // serving stale code on in-site navigations — edits appear to change
+      // nothing no matter how many times the code is fixed.
+      'Cache-Control': 'no-store',
+    })
     createReadStream(full).pipe(res)
   } catch {
     res.writeHead(404, {'Content-Type': 'text/plain'}).end('Not found')

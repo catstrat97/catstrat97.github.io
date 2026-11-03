@@ -1,25 +1,42 @@
 /* ============================================================
-   style.css — Alt design direction (green / black, IBM Plex)
-   Home page implemented strictly from Figma node 583:65.
+   style.css — Grey / black direction, IBM Plex Sans Condensed Regular.
+   Landing implemented strictly from Figma node 774:253 (refined type:
+   16px / 1.25, 333px intro column, content-sized rail), with the click
+   states 774:273 — rotated mark — and 774:276 — menu.
    ============================================================ */
+
+/* Departure Mono (SIL Open Font License 1.1, departuremono.com) — used only
+   by the noise field's canvas, never by the copy. Self-hosted because the
+   field measures its cell metrics at boot and a webfont race would size the
+   grid off the fallback. */
+@font-face {
+  font-family: 'Departure Mono';
+  src: url('fonts/DepartureMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 :root {
   --bg: #010101;
-  --green: #03fe97;
-  --green-muted: #12f99b;
+  --fg: #cecece;
+  --fg-muted: #b9b9b9;
+  --mark: #b9b9b9;
 
-  --fs-base: 20px;
+  --fs-base: 16px;
   --fs-brand: 24px;
-  --fs-intro: 24px;
+  --fs-intro: 16px;
+  --lh: 1.25;
 
   --header-h: 72px;
-  /* Right-hand column width — shared by the header status box and the hero
-     rail so their green dividers line up vertically. */
-  --rail-w: 244px;
+  /* Column widths — Figma 774:260/262: intro is 281px of text + 28/24
+     padding = 333px; the rail is content-sized (24/28 padding). */
+  --rail-w: auto;
+  --intro-w: 333px;
 
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-sans: 'IBM Plex Sans Condensed', 'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* Shared list/toolbar column grid (Figma 37 / 30.5 / role).
      Year is the wide left margin; Name is generous so long titles never
@@ -39,8 +56,8 @@ body {
   margin: 0;
   padding: 0;
   background-color: var(--bg);
-  color: var(--green);
-  font-family: var(--font-mono);
+  color: var(--fg);
+  font-family: var(--font-sans);
   font-weight: 500;
   font-size: var(--fs-base);
   line-height: 1;
@@ -49,30 +66,140 @@ body {
   cursor: none;
 }
 
+/* The landing occupies exactly one viewport — never scrolls. Pages that need
+   to scroll (the project list) opt out with .page-scroll. */
+body:not(.page-scroll) {
+  height: 100dvh;
+  overflow: hidden;
+}
+
 a { color: inherit; text-decoration: none; }
 
-/* ── Custom circular cursor ─────────────────────────────────── */
+/* ── Legacy dot cursor (older pages) ────────────────────────── */
 .cursor {
   position: fixed;
   left: 0; top: 0;
   width: 14px; height: 14px;
   margin-left: -7px; margin-top: -7px;
   border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 10px rgba(3, 254, 151, 0.7), 0 0 22px rgba(3, 254, 151, 0.35);
+  background: var(--fg);
   pointer-events: none;
   z-index: 9999;
   transform: translateZ(0);
   transition: transform 120ms ease, opacity 150ms ease;
 }
 
+/* ── Crosshair cursor (Figma 711:76) ────────────────────────────
+   A full-height rule that only moves on X, a full-width rule that only
+   moves on Y, and a 16px square mark at their intersection. On load the
+   two rules trim in from the mark; over the text columns they trim back
+   out, leaving just the mark. Click rotates the mark 45°. */
+.crosshair {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.ch-line {
+  position: fixed;
+  background: var(--fg);
+  /* Trim paths: the rules scale in/out from the cursor point, which JS keeps
+     as the transform-origin so they always retract toward the mark. */
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* margin nudges the 1px rules onto the mark's exact centre line. */
+.ch-v { top: 0; left: 0; width: 1px; height: 100dvh; margin-left: -0.5px; transform: scaleY(1); }
+.ch-h { top: 0; left: 0; height: 1px; width: 100vw; margin-top: -0.5px; transform: scaleX(1); }
+
+/* Intro: the crosshair draws in slowly, a beat behind the column rules. */
+.crosshair.is-intro .ch-line {
+  transition-duration: 1500ms;
+  transition-delay: 280ms;
+}
+
+/* Trimmed out — on load, and whenever the cursor is over a text column. */
+.crosshair.is-trimmed .ch-v,
+.preload .ch-v { transform: scaleY(0); }
+.crosshair.is-trimmed .ch-h,
+.preload .ch-h { transform: scaleX(0); }
+
+.ch-mark {
+  position: fixed;
+  top: 0; left: 0;
+  width: 16px; height: 16px;
+  margin-left: -8px; margin-top: -8px;
+  background: var(--bg);
+  /* Figma 774:273 — at rest the mark is a diamond: the 16px square turned
+     45°, 2px outline. rotate and scale are separate properties (not
+     `transform`) so the diamond and the press squash compose. The release
+     springs back past 1 and settles — the tactile half. */
+  border: 2px solid var(--mark);
+  rotate: 45deg;
+  transition: rotate 380ms cubic-bezier(0.22, 1, 0.36, 1),
+              scale 420ms cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+/* Click → the diamond unfolds into the menu (site.js: openMenu). While the
+   morph box is standing in for it, the real mark is hidden; when the menu has
+   formed, the mark re-springs at the pointer from zero. */
+.crosshair.is-morphing .ch-mark { opacity: 0; transition: none; }
+.crosshair.is-spawn .ch-mark { opacity: 0; scale: 0; transition: none; }
+.ch-morph {
+  position: fixed;
+  z-index: 69;                    /* over the crosshair, under the menu */
+  display: none;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 2px solid var(--mark);
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+/* Press: while the button is down the mark sinks in, fast. */
+.crosshair.is-pressed .ch-mark {
+  scale: 0.7;
+  transition: rotate 380ms cubic-bezier(0.22, 1, 0.36, 1),
+              scale 90ms cubic-bezier(0.25, 0.8, 0.4, 1);
+}
+
+/* ── Cursor menu (Figma 711:82) ─────────────────────────────── */
+.cursor-menu {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 70;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  width: max-content;
+  background: var(--bg);
+}
+.cursor-menu.is-open { display: flex; }
+/* The menu's content fades in once the morph box has become its outline,
+   so it arrives inside the shape rather than popping in beside it. */
+.cursor-menu { opacity: 0; transition: opacity 140ms ease; }
+.cursor-menu.is-shown { opacity: 1; }
+.cursor-menu a {
+  /* Figma trims the box to the cap height, so each row is 14px + 4px padding. */
+  padding: 4px 2px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 0.7;
+  text-transform: lowercase;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.cursor-menu a.is-active,
+.cursor-menu a:hover {
+  background: var(--fg);
+  color: var(--bg);
+  opacity: 0.9;
+}
+
 /* ── Load-in (page starts black, text decodes in) ───────────── */
 .site-header,
-.hero,
-.projects { transition: opacity 0.8s ease; }
+.hero { transition: opacity 0.8s ease; }
 .preload .site-header,
-.preload .hero,
-.preload .projects { opacity: 0; }
+.preload .hero { opacity: 0; }
 
 /* Content layers sit above the full-viewport noise canvas (z-index 0). The
    header and projects bands stay opaque; the hero is transparent so the noise
@@ -87,7 +214,7 @@ a { color: inherit; text-decoration: none; }
   align-items: stretch;
   justify-content: space-between;
   height: var(--header-h);
-  background: var(--green);
+  background: var(--fg);
   color: var(--bg);
 }
 
@@ -96,7 +223,7 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   padding: 0 48px;
   background: var(--bg);
-  color: var(--green);
+  color: var(--fg);
   font-family: var(--font-mono);
   font-weight: 400;
   font-size: var(--fs-brand);
@@ -123,7 +250,7 @@ a { color: inherit; text-decoration: none; }
 .main-nav a:hover { opacity: 0.6; }
 .main-nav a.is-active {
   background: var(--bg);
-  color: var(--green);
+  color: var(--fg);
   padding: 4px 6px;
 }
 .main-nav a.is-active:hover { opacity: 1; }
@@ -135,8 +262,8 @@ a { color: inherit; text-decoration: none; }
   width: var(--rail-w);
   padding: 0 24px;
   background: var(--bg);
-  color: var(--green);
-  border-left: 1px solid var(--green);
+  color: var(--fg);
+  border-left: 1px solid var(--fg);
   font-family: var(--font-mono);
   font-weight: 500;
   font-size: 20px;
@@ -146,87 +273,145 @@ a { color: inherit; text-decoration: none; }
 .status .dot {
   width: 14px; height: 14px;
   border-radius: 50%;
-  background: var(--green);
+  background: var(--fg);
   flex: 0 0 auto;
 }
 
-/* ── Hero (intro / noise stage / rail) ──────────────────────── */
-.hero {
+/* ── Stage (intro │ noise │ rail) — Figma 711:65 ───────────────
+   Exactly one viewport, three columns, never scrolls. Every column is
+   transparent so the noise field reads edge to edge behind the type —
+   the animation is the centre stage. */
+.stage {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(420px, 612px) 1fr var(--rail-w);
-  min-height: max(640px, calc(100vh - var(--header-h)));
+  grid-template-columns: var(--intro-w) 1fr auto;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.col {
+  position: relative;
   background: transparent;
+  padding-top: 24px;
+  min-width: 0;
 }
 
-.hero-col { background: transparent; padding-top: 128px; }
-
-.hero-intro {
-  border-right: 1px solid var(--green);
-  padding-left: 48px;
-  padding-right: 24px;
+/* Column rules — 1px hairlines that trim in on load (scaleY 0 → 1). */
+.rule {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--fg);
+  transform: scaleY(1);
+  transform-origin: top;
+  transition: transform 1750ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+.rule-r { right: 0; }
+.rule-l { left: 0; }
+.preload .rule,
+.is-exiting .rule { transform: scaleY(0); }
+.is-exiting .ch-v { transform: scaleY(0); }
+.is-exiting .ch-h { transform: scaleX(0); }
+/* Retract faster than the 1.5s draw-in, and blank the field, so the page is
+   empty before we navigate. The mark keeps tracking the pointer. */
+.is-exiting .rule,
+.is-exiting .ch-line,
+.is-exiting .year-group::before,
+.is-exiting .year-group::after { transition-duration: 700ms; transition-delay: 0ms; }
+.is-exiting .noise-field,
+.is-exiting .proj-thumb { opacity: 0; transition: opacity 600ms ease; }
+
+/* Left column — Figma 774:260 / 774:261 */
+.col-intro { padding-left: 28px; padding-right: 24px; }
 .intro {
   margin: 0;
-  max-width: 540px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: var(--fs-intro);
-  line-height: 1.0;
-  text-transform: uppercase;
-  color: var(--green);
+  line-height: var(--lh);
+  text-transform: lowercase;
+  color: var(--fg);
+  overflow-wrap: break-word;
 }
-/* Legibility over the noise: box each WORD, not the whole paragraph. */
-.intro .word { background: var(--bg); padding: 1px 3px; }
 .intro-link {
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 2px;
   text-decoration-thickness: from-font;
 }
 
-/* The noise-field canvas is mounted full-viewport behind everything (fixed),
-   so the domain-warp reads across the whole page. The hero stage just reserves
-   the centre column space; the canvas itself sits at body level. */
-.hero-stage {
-  background: transparent;
-  position: relative;
-  overflow: hidden;
-  padding-top: 0;
-}
+/* The noise canvas is fixed behind everything; the middle column is just
+   the transparent window it reads through. */
 .noise-field {
   position: fixed;
   inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   display: block;
   z-index: 0;
   pointer-events: none;
 }
 
-.hero-rail {
-  border-left: 1px solid var(--green);
+/* Right column — Figma 774:262 (content-sized, Regular 16px) */
+.col-rail {
   padding-left: 24px;
-  padding-right: 20px;
+  padding-right: 28px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 48px;
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: 20px;
-  color: var(--green);
-  text-transform: uppercase;
+  width: max-content;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--fs-base);
+  color: var(--fg);
 }
-/* Box each rail LINE (not the group) so each reads over the noise. */
-.rail-socials { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.rail-socials a,
-.rail-clock span,
-.rail-coords span { background: var(--bg); padding: 1px 4px; }
-.rail-clock span,
-.rail-coords span { display: inline-block; }
+/* No gap — the links stack on the paragraph's own leading so the rail reads
+   as continuous copy rather than a spaced list. */
+.rail-socials {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: var(--lh);
+  text-transform: lowercase;
+}
 .rail-socials a { transition: opacity 0.2s ease; }
 .rail-socials a:hover { opacity: 0.6; }
-.rail-clock { line-height: 1.5; white-space: nowrap; align-self: flex-start; }
-.rail-coords { line-height: 1.5; white-space: nowrap; }
+.rail-clock,
+.rail-coords { line-height: var(--lh); white-space: nowrap; }
+.rail-clock span,
+.rail-coords span { display: inline-block; }
+
+/* ── Stage responsive ───────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .col-intro { padding-left: 20px; padding-right: 20px; }
+  .col-rail { padding-left: 20px; padding-right: 20px; }
+}
+@media (max-width: 860px) {
+  /* Stack: intro / field / rail — still exactly one viewport. */
+  .stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .col { padding: 20px 20px 0; }
+  /* Bottom padding keeps the divider off the last line's descenders. */
+  .col-intro { padding-left: 20px; padding-right: 20px; padding-bottom: 16px; }
+  /* Vertical hairlines become horizontal dividers when stacked. */
+  .rule { top: auto; bottom: 0; left: 0; width: 100%; height: 1px; transform-origin: left; }
+  .rule-r, .rule-l { right: auto; left: 0; }
+  .preload .rule,
+  .is-exiting .rule { transform: scaleX(0); }
+  .col-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px 28px;
+    padding-bottom: 20px;
+    width: auto;
+  }
+  .rail-socials { flex-direction: row; gap: 14px; }
+  .crosshair { display: none; }
+}
 
 /* ── Projects ───────────────────────────────────────────────── */
 .projects { background: var(--bg); }
@@ -242,10 +427,10 @@ a { color: inherit; text-decoration: none; }
   padding: 8px var(--row-pad-x);
 }
 
-/* Toolbar band (green) */
+/* Toolbar band — Figma 713:99: black ground, light type (no filled band). */
 .projects-toolbar {
-  background: var(--green);
-  color: var(--bg);
+  background: transparent;
+  color: var(--fg);
   font-weight: 600;
 }
 .projects-toolbar .tb-year {
@@ -263,12 +448,12 @@ a { color: inherit; text-decoration: none; }
   border: none;
   padding: 0 2px;
   cursor: none;
-  color: var(--bg);
+  color: var(--fg);
 }
 .view-toggle button[aria-pressed='true'] {
-  background: var(--bg);
-  color: var(--green);
-  border: 1px solid var(--green);
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--fg);
   padding: 4px;
 }
 
@@ -292,21 +477,21 @@ a { color: inherit; text-decoration: none; }
   border: none;
   padding: 0 2px;
   cursor: none;
-  color: var(--bg);
+  color: var(--fg);
   transition: opacity 0.18s ease;
 }
 .filter-chips button:hover { opacity: 0.6; }
 .filter-chips button[aria-pressed='true'] {
-  background: var(--bg);
-  color: var(--green);
-  border: 1px solid var(--green);
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--fg);
   padding: 4px;
   opacity: 1;
 }
 
 /* Muted table header (Year hidden, Name/Role at 40%) */
 .table-head {
-  color: var(--green-muted);
+  color: var(--fg-muted);
   text-transform: uppercase;
   font-family: var(--font-mono);
   font-weight: 500;
@@ -319,21 +504,43 @@ a { color: inherit; text-decoration: none; }
 .projects-table { width: 100%; }
 .projects-status { color: rgba(3, 254, 151, 0.5); padding: 16px var(--row-pad-x); }
 
-.year-group {
-  border-top: 1px solid var(--green);
-  border-bottom: 1px solid var(--green);
+.year-group { position: relative; }
+/* Hairlines as pseudo-elements so they can trim in/out like every other
+   rule on the site (a border can't be transformed). */
+.year-group::before,
+.year-group::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--fg);
+  transform: scaleX(1);
+  transform-origin: left;
+  transition: transform 1750ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+.year-group::before { top: 0; }
+.year-group::after { bottom: 0; }
+/* Used for one frame to set a start state without tweening into it. */
+.no-anim,
+.no-anim *,
+.no-anim *::before,
+.no-anim *::after { transition: none !important; }
+
+.lines-hidden .year-group::before,
+.lines-hidden .year-group::after,
+.is-exiting .year-group::before,
+.is-exiting .year-group::after { transform: scaleX(0); }
 .year-group:not(:last-child) { margin-bottom: 96px; }
 
 .project-row {
-  color: var(--green);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 20px;
   text-transform: uppercase;
 }
 .project-row:hover {
-  background: var(--green);
+  background: var(--fg);
   color: var(--bg);
 }
 
@@ -405,12 +612,12 @@ a { color: inherit; text-decoration: none; }
   .cursor { display: none; }
   body { cursor: auto; }
 
-  :root { --fs-brand: 18px; --fs-intro: 18px; --row-pad-x: 16px; }
+  :root { --fs-brand: 18px; --row-pad-x: 16px; }
 
   /* Stack the header band so the black blocks span full width (no green gaps). */
   .site-header { flex-direction: column; align-items: stretch; height: auto; }
   .brand { padding: 14px 16px; }
-  .main-nav { padding: 8px 16px 14px; gap: 8px 16px; background: var(--green); }
+  .main-nav { padding: 8px 16px 14px; gap: 8px 16px; background: var(--fg); }
   .status { padding: 12px 16px; border-left: none; }
 
   .hero { grid-template-columns: 1fr; min-height: 0; }
@@ -429,4 +636,827 @@ a { color: inherit; text-decoration: none; }
   :root { --col-year: 20%; --col-name: 44%; }
   .project-row, .table-head { font-size: 16px; }
   .projects-grid.is-active { flex-direction: column; }
+}
+
+/* ============================================================
+   Project page — Figma 774:287
+   Single viewport: a 658px panel (filters + list) with the
+   thumbnail frame floating in the open space to its right.
+   ============================================================ */
+.proj-stage {
+  position: relative;
+  z-index: 1;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.proj-panel {
+  position: relative;
+  width: 658px;
+  height: 100%;
+  padding: 48px 66px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 164px;
+}
+
+/* ── Filters ───────────────────────────────────────────────── */
+.proj-filters {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 372px;
+  padding-right: 24px;
+  line-height: 1.25;
+}
+/* Figma sets the label in IBM Plex Sans — not the condensed cut. */
+.filters-label {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 16px;
+  /* Never `capitalize` on written text: the copy is split into per-character
+     spans, and capitalize treats each span as its own word — so every letter
+     is uppercased (FILTERS, IDENTITY). Lowercase is safe. */
+  text-transform: lowercase;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.filter-list button {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.25;
+  text-transform: lowercase;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: none;
+  white-space: nowrap;
+  color: #7e7e7e;
+  transition: color 0.2s ease;
+}
+.filter-list button:hover,
+.filter-list button[aria-pressed='true'] { color: var(--fg); }
+
+/* ── Roles + list ──────────────────────────────────────────── */
+.proj-body {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* One line, absolutely placed, moved to whichever row is hovered. */
+/* Top-aligned with the first row of the list rather than tracking the hovered
+   one: the write-up sits at the top, roles underneath. Flex/gap is on this
+   wrapper only — putting it on a written element makes every letter its own
+   gapped item. */
+.proj-role {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 262px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  text-transform: lowercase;
+  color: rgba(206, 206, 206, 0.73);
+  pointer-events: none;
+}
+.role-desc {
+  margin: 0;
+  line-height: 1.45;
+  color: rgba(206, 206, 206, 0.5);
+}
+.role-desc:empty { display: none; }
+.role-line { white-space: nowrap; }
+/* Idle messages are long-form — they wrap, and sit dimmer than a hovered role. */
+.proj-role.is-idle { color: rgba(206, 206, 206, 0.5); }
+.proj-role.is-idle .role-line { white-space: normal; line-height: 1.45; }
+
+.proj-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.4;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+.proj-list li {
+  color: rgba(206, 206, 206, 0.61);
+  transition: color 0.18s ease;
+}
+.proj-list li.is-active { color: var(--fg); }
+/* Filtered-out rows stay in place but recede. */
+.proj-list li.is-dim { color: rgba(206, 206, 206, 0.22); }
+
+/* ── Thumbnail frame ───────────────────────────────────────── */
+/* Centred in the open space to the right of the panel, and a size up from
+   the Figma box — JS positions it vertically and adds the damped follow. */
+.proj-thumb {
+  position: absolute;
+  left: 658px;
+  right: 0;
+  margin-inline: auto;
+  top: 0;
+  width: 560px;
+  height: 0;
+  border: 1px solid var(--fg);
+  overflow: clip;
+  opacity: 0;
+  pointer-events: none;
+  /* Height is the in/out animation; transform is the damped pointer follow.
+     border-color rides the exit: the boundary fades once the image has left. */
+  transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 220ms ease,
+              border-color 240ms ease;
+}
+.proj-thumb.is-open { opacity: 1; }
+/* Starts cleared; JS fills it on the way out (see project-page.js open()). */
+.thumb-scramble { opacity: 0; transition: opacity 200ms ease; }
+.thumb-scramble.is-washing { opacity: 1; }
+/* No box through the exit: the border leaves the moment the wash starts, so
+   the image dissolves into free glyphs — never a framed rectangle. */
+.proj-thumb.is-washing { border-color: transparent; }
+/* A washing thumb's exit IS the strip — hold the container at full opacity so
+   the glyphs stay legible while they leave (the strip ends with the pre
+   cleared, so nothing outlives it). */
+.is-exiting .proj-thumb.is-washing { opacity: 1; border-color: transparent; }
+/* The moment an element's media has stripped, its boundary leaves too —
+   playExit adds .is-washed per element as its strip completes. Without this
+   the empty border box lingered for the rest of the copy's backspace
+   (border-color rides the 240ms transition on .proj-thumb). */
+.is-washed { border-color: transparent; background: transparent; }
+
+/* While washing, the media itself dissolves under the building cover — a
+   light image otherwise bleeds through the glyph gaps and reads as a pale
+   slab. It fades back in under the strip when the wash lifts (the toggle
+   removes .is-washing as its strip starts). */
+.thumb-media, .pv-frame img, .pv-frame video { transition: opacity 380ms ease; }
+.is-washing .thumb-media,
+.pv-frame.is-washing img,
+.pv-frame.is-washing video { opacity: 0; }
+.thumb-media { width: 100%; height: 100%; }
+.thumb-media video,
+.thumb-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 900px) {
+  .proj-panel { width: 100%; padding: 32px 20px 0; gap: 64px; }
+  .proj-filters { padding-left: 0; padding-right: 0; }
+  .proj-role { position: static; width: auto; margin-bottom: 12px; }
+  .proj-body { flex-direction: column; }
+  .proj-list { margin-left: 0; }
+  .proj-thumb { display: none; }
+}
+
+/* Over the thumbnail the square mark becomes a labelled button — Figma
+   778:568: 1px border, 2/8/4 padding, 14px condensed lowercase. */
+.ch-cta {
+  position: fixed;
+  top: 0; left: 0;
+  display: none;
+  align-items: center;
+  padding: 2px 8px 4px;
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1;
+  text-transform: lowercase;
+  color: var(--fg);
+  white-space: nowrap;
+  transform: translate(14px, -50%);
+  pointer-events: none;
+}
+.crosshair.is-cta .ch-cta { display: flex; }
+.crosshair.is-cta .ch-mark { opacity: 0; }
+.ch-mark {
+  transition: rotate 380ms cubic-bezier(0.22, 1, 0.36, 1),
+              scale 420ms cubic-bezier(0.34, 1.7, 0.5, 1),
+              opacity 160ms ease;
+}
+.crosshair.is-pressed .ch-mark {
+  transition: rotate 380ms cubic-bezier(0.22, 1, 0.36, 1),
+              scale 90ms cubic-bezier(0.25, 0.8, 0.4, 1),
+              opacity 160ms ease;
+}
+
+/* Pointer lives only inside the declared frame (project page). The rules are
+   withheld outside it — the square mark is the cursor, so it always stays. */
+.crosshair.is-off .ch-v { transform: scaleY(0); }
+.crosshair.is-off .ch-h { transform: scaleX(0); }
+/* Never let the intro's slow draw-in play while the pointer is off-frame. */
+.crosshair.is-off.is-intro .ch-line { transition-delay: 0ms; }
+
+/* Region-scoped noise field (project page: right side only). */
+.noise-field.is-region { position: fixed; inset: auto; }
+.proj-field {
+  position: absolute;
+  left: 658px; top: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+}
+/* The field is the idle state — it recedes while a project is being read.
+   The canvas mounts at body level, so the flag lives on <body>. */
+.noise-field.is-region { transition: opacity 420ms ease; }
+body.is-reading .noise-field.is-region { opacity: 0.1; }
+
+/* ── No first-paint flash ──────────────────────────────────────
+   site.js loads at the end of <body>, so markup in the HTML is painted
+   before JS can hide it for the write-in — which read as the page loading,
+   blanking, then loading again. `.preload` is set by an inline <head>
+   script, so this hides the copy before the first paint. JS then takes over
+   with its own inline transparency, and this rule stops mattering. */
+.preload .intro,
+.preload .rail-socials a,
+.preload .rail-clock,
+.preload .rail-coords,
+.preload .filters-label,
+.preload .filter-list,
+.preload .proj-list,
+.preload .pv-title,
+.preload .pv-desc,
+.preload .pv-roles-label,
+.preload .pv-roles-list span,
+.preload .pv-link-label { color: transparent; }
+
+/* ============================================================
+   Project interior — Figma 778:708
+   Fixed info panel on the left, a centred media stack that scrolls.
+   ============================================================ */
+.pv-stage { position: relative; z-index: 1; min-height: 100dvh; }
+
+.pv-panel {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  position: fixed;
+  left: 0; top: 0;
+  width: 352px;                 /* 304px content + 24px padding each side */
+  height: 100dvh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  background: var(--bg);
+  z-index: 2;
+}
+.pv-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 304px;
+}
+.pv-title {
+  font-size: 20px;
+  line-height: 1.2;
+  text-transform: lowercase;
+  color: var(--fg);
+  white-space: nowrap;
+}
+/* Header mark + link arrow — the real SVGs (Figma 778:716 / 778:728). */
+/* Held back until the copy has finished writing, then faded in on the same
+   380ms curve the media frames use — so nothing is on screen before the
+   type that introduces it. JS adds .is-in (see project-detail.js).
+
+   The glyph is also the collapse toggle, so it is fixed rather than in the
+   header flow: it lerps between its expanded seat (Figma 778:716, x=304.9)
+   and the collapsed bar (778:780, x=24) while the panel changes underneath. */
+.pv-glyph {
+  position: fixed;
+  left: 304.895px;              /* 24 panel pad + 304 content − 23.105 glyph */
+  top: 28.709px;                /* centred in the 24px header row */
+  z-index: 5;
+  display: block;
+  /* No focus ring, no tap flash, no pressed state — the crosshair is the
+     only click affordance this site has. */
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: left 420ms cubic-bezier(0.22, 1, 0.36, 1),
+              top 420ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 380ms ease;
+}
+.pv-glyph:focus, .pv-glyph:active { outline: none; }
+.is-collapsed .pv-glyph { left: 24px; top: 23px; }
+.pv-arrow { display: inline-block; vertical-align: baseline; margin-left: 4px; }
+.pv-glyph, .pv-arrow { opacity: 0; }
+.pv-arrow { transition: opacity 380ms ease; }
+.pv-glyph.is-in, .pv-arrow.is-in { opacity: 1; }
+.is-exiting .pv-glyph, .is-exiting .pv-arrow { opacity: 0; }
+
+.pv-body { display: flex; flex-direction: column; gap: 64px; }
+.pv-desc {
+  margin: 0;
+  width: 304px;
+  font-size: 14px;
+  line-height: 1.25;
+  text-transform: lowercase;
+  color: var(--fg);
+}
+
+.pv-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 304px;
+}
+.pv-roles { display: flex; flex-direction: column; gap: 10px; text-transform: lowercase; }
+.pv-roles-label { font-size: 14px; line-height: 1; color: var(--fg); }
+.pv-roles-list {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.57;
+  color: var(--fg);
+}
+/* Not flex — the write splits this into per-character spans, and flex would
+   make every letter its own gapped item (L I N K). */
+.pv-link {
+  display: inline-block;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 1;
+  text-transform: lowercase;
+  color: var(--fg);
+}
+
+
+/* ── Media stack ───────────────────────────────────────────── */
+/* Second column — Figma 778:731: same 352px, flush to the right edge, its
+   rule on the far side. The media stack floats over both. */
+.pv-panel-right {
+  left: auto;
+  right: 0;
+  z-index: 1;
+  background: transparent;
+}
+.pv-slot { width: 304px; height: 242px; }
+
+/* Figma 778:750 — the stack's container runs from the left panel's right
+   edge to the right edge of the viewport (x=352 → 1510 at 1512 wide), and
+   every frame centres inside it regardless of its own width. Centring is
+   therefore viewport-relative: a fixed margin only lands at one width. */
+.pv-media {
+  position: relative;
+  margin-left: 352px;
+  padding: 96px 0 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.pv-frame {
+  position: relative;
+  width: 894px;
+  max-width: calc(100% - 48px);
+  background: #343434;
+  overflow: clip;
+  /* Frames open by height, like the projects-page thumbnail. */
+  transform-origin: top center;
+  transition: height 620ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 380ms ease;
+}
+.pv-frame.is-square { width: 502px; }
+.pv-frame img, .pv-frame video {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+}
+/* Closed until it animates in. */
+.pv-frame:not(.is-in) { height: 0 !important; opacity: 0; }
+
+/* Some frames scramble in — an ASCII wash over the frame that clears. */
+.pv-scramble {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.05;
+  letter-spacing: 0.5px;
+  color: rgba(206, 206, 206, 0.72);
+  /* No static background — SiteFX.wash drives the cover's alpha inline, so
+     the media dissolves under the glyphs instead of popping behind an opaque
+     layer. Frames that must arrive covered get the alpha set at build. */
+  background: transparent;
+  overflow: hidden;
+  white-space: pre;
+  pointer-events: none;
+  transition: opacity 320ms ease;
+}
+.pv-frame.is-settled .pv-scramble { opacity: 0; }
+
+/* While a frame is washing, its grey placeholder must not show behind the
+   thinning glyphs — the strip resolves to nothing, not to a slab. */
+.pv-frame.is-washing { background: transparent; }
+
+/* Exit: frames close, panel copy redacts (handled by SiteFX). By this point
+   the standard media exit has already stripped them empty. */
+.is-exiting .pv-frame { height: 0 !important; opacity: 0; }
+
+/* ── Collapsed / slideshow — Figma 778:771 ─────────────────────
+   The panel folds to a bar just wide enough for its own toggle
+   (24 + 23.105 + 24), and the media stack turns on its side into a band
+   inset 40px top and bottom, scrolling horizontally. */
+.is-collapsed, .is-collapsed body { overflow: hidden; height: 100%; }
+.is-collapsed .pv-panel { width: 71.105px; overflow: hidden; }
+.is-collapsed .pv-head,
+.is-collapsed .pv-body { visibility: hidden; }
+.is-collapsed .pv-panel-right { display: none; }
+
+.is-collapsed .pv-media {
+  position: fixed;
+  top: 0; bottom: 0;
+  left: 71.105px; right: 0;
+  margin-left: 0;
+  /* Half-band side paddings let the first and last frames reach dead centre.
+     Sized to the BAND, not 50vw — viewport-half paddings exceed the band's
+     width, over-constrain the box, and silently discard `right: 0`. */
+  padding: 40px calc((100vw - 71.105px) / 2);
+  flex-direction: row;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+/* Browse transforms (translate + scale) are set per frame by JS each tick —
+   both strips, so the will-change rides the frame everywhere. */
+.pv-frame { will-change: transform; }
+.is-collapsed .pv-frame { transform-origin: center center; }
+
+/* Slideshow: the crosshair lines retract — only the square mark remains. */
+.is-collapsed .ch-v { transform: scaleY(0); }
+.is-collapsed .ch-h { transform: scaleX(0); }
+.is-collapsed .pv-media::-webkit-scrollbar { width: 0; height: 0; }
+/* JS sets width and height inline in this mode — the frame keeps its aspect
+   and is capped to the band height, so a 9:16 portrait lands at 465.7×828. */
+.is-collapsed .pv-frame { flex: 0 0 auto; max-width: none; }
+
+/* The toggle's own rule timings. Kept behind .is-toggling so the 1750ms
+   load-in draw (which site.js times the text reveal against) is untouched. */
+.is-toggling .rule { transition-duration: 520ms; }
+.is-toggling.is-ruling .rule { transition-duration: 380ms; transform: scaleY(0); }
+
+@media (max-width: 1000px) {
+  .pv-panel { position: relative; width: 100%; height: auto; }
+  .pv-media { margin-left: 0; padding: 24px 20px 60px; }
+  .pv-frame,
+  .pv-frame.is-square { width: 100%; max-width: none; }
+  /* No slideshow on a phone — the panel is already a full-width band. */
+  .pv-glyph { display: none; }
+  .is-collapsed, .is-collapsed body { overflow: visible; height: auto; }
+  .is-collapsed .pv-panel { width: 100%; }
+  .is-collapsed .pv-head, .is-collapsed .pv-body { visibility: visible; }
+  .is-collapsed .pv-media {
+    position: relative; inset: auto; margin-left: 0;
+    flex-direction: column; overflow: visible; padding: 24px 20px 60px;
+  }
+}
+
+/* ============================================================
+   test.fun — experiment grid (Figma 1010:696)
+   Justified rows at a fixed 55px height; test-page.js sets every tile's
+   width so each full row spans exactly margin-to-margin. Greyscale at rest,
+   the hovered group lights up (dia.studio's mechanic).
+   ============================================================ */
+.tf-page .ch-line { display: none; }          /* Figma: only the mark shows */
+.tf-stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  padding: 72px 25px 96px;                    /* equal left / right margins */
+}
+.tf-grid { display: flex; flex-direction: column; gap: 1px; }
+.tf-row { display: flex; gap: 1px; }
+.tf-tile {
+  position: relative;
+  flex: 0 0 auto;
+  height: var(--tf-row, 66px);                /* Figma 55px × 1.2; phone fits the screen */
+  overflow: hidden;
+  background: #151515;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+.tf-grid.is-in .tf-tile { opacity: 1; }
+.tf-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1);
+  transition: filter 200ms ease-in;
+}
+.tf-tile.is-lit .tf-media { filter: grayscale(0); }
+/* Poster-backed video: layered over its poster, invisible until it is really
+   playing — so a hover never flashes black while the video spins up, and
+   leaving hands straight back to the poster. */
+.tf-video {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 120ms ease, filter 200ms ease-in;
+}
+.tf-tile.is-playing .tf-video { opacity: 1; }
+.is-exiting .tf-grid { opacity: 0; transition: opacity 600ms ease; }
+
+/* Preloader — covers the page until test-page.js has every asset. */
+.tf-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;                                /* under the crosshair mark */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  transition: opacity 600ms ease;
+}
+.tf-loader.is-done { opacity: 0; pointer-events: none; }
+.tf-loader-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 700px) {
+  .tf-stage { padding: 56px 16px 64px; }
+}
+
+/* CMS-driven link: hidden when the project has no Link set. Needed because
+   .pv-link sets display, which beats the [hidden] attribute. */
+.pv-link[hidden] { display: none; }
+
+/* ============================================================
+   Projects v2 (projects-v2.html) — stage preview
+   The preview owns the space right of the list: fixed, as large as the
+   space allows at the media's aspect, no pointer drift. Position and size
+   are set by project-page-v2.js; they ease here.
+   ============================================================ */
+.pp-v2 .proj-thumb {
+  position: fixed;
+  right: auto;
+  margin: 0;
+  transform: none !important;
+  border: 0;
+  background: #0b0b0b;
+  transition: left 520ms cubic-bezier(0.22, 1, 0.36, 1),
+              top 520ms cubic-bezier(0.22, 1, 0.36, 1),
+              width 520ms cubic-bezier(0.22, 1, 0.36, 1),
+              height 520ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 260ms ease;
+}
+.pp-v2 .thumb-media { position: relative; }
+.pp-v2 .stage-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+.pp-v2 .stage-layer.is-on { opacity: 1; }
+/* While a row is active, the others recede so the project reads as chosen. */
+.pp-v2 .proj-list.has-active li:not(.is-active) { color: rgba(206, 206, 206, 0.28); }
+
+/* ============================================================
+   Interior v2 (project-detail-v2.html) — wide-first, paged browsing
+   ============================================================ */
+.pv-v2 .pv-caption,
+.pv-v2 .pv-progress { display: none; }
+.is-collapsed .pv-v2 .pv-caption {
+  display: flex;
+  position: fixed;
+  left: calc(71.105px + 24px);
+  right: 24px;
+  bottom: 14px;
+  z-index: 3;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: rgba(206, 206, 206, 0.7);
+  pointer-events: none;
+}
+.pv-v2 .pv-cap-count { font-variant-numeric: tabular-nums; }
+.is-collapsed .pv-v2 .pv-progress {
+  display: block;
+  position: fixed;
+  left: 71.105px;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  z-index: 3;
+  background: rgba(206, 206, 206, 0.14);
+  pointer-events: none;
+}
+.pv-v2 .pv-progress span {
+  display: block;
+  height: 100%;
+  background: var(--fg);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Wide view: a little more air between frames, and side frames read as
+   clickable. The band never scrolls natively — the browse layer drives it. */
+.is-collapsed .pv-v2 .pv-media { gap: 28px; scroll-behavior: auto; touch-action: pan-y; }
+.is-collapsed .pv-v2 .pv-frame { transform-origin: center center; }
+.is-collapsed .pv-v2 .pv-frame:not(.is-focus) { cursor: pointer; }
+
+/* ============================================================
+   Phone — touch screens (hover: none + coarse pointer)
+   Every page is exactly one screen: nothing scrolls. The finger is the
+   pointer — site.js moves the crosshair with it and replays the drag as
+   hover, so every hover state still works. Gated on the input type, not
+   the width, so a narrow desktop window is untouched.
+   ============================================================ */
+@media (hover: none) and (pointer: coarse) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  body, body.page-scroll { height: 100dvh; overflow: hidden; }
+  /* A drag belongs to the crosshair, never to the browser (pan, zoom,
+     rubber-band). Pages that page through media do it in JS. */
+  * {
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* iOS only delivers a tap's click to a document-level listener when the
+     tapped element looks clickable. The cursor is invisible on a phone. */
+  body * { cursor: pointer; }
+
+  /* All type is 10px on a phone. (The noise field draws on a canvas and
+     sizes its own glyphs, so it is unaffected.) */
+  body, body * { font-size: 10px !important; }
+  /* At 10px a full-width line runs ~75 characters — too long to read on a
+     phone. Running copy is held to ~45 characters, 7–8 words (the classic
+     45–75 range, at its short end for a small screen). */
+  .intro, .role-desc, .proj-role.is-idle .role-line, .pv-desc { max-width: 36ch; text-wrap: pretty; }
+
+  .crosshair { display: block; }
+
+  /* The menu opens under a fingertip — bigger rows, same shape. */
+  .cursor-menu { gap: 6px; padding: 10px; }
+  .cursor-menu a { padding: 6px 4px; }
+
+  /* ── Home ─────────────────────────────────────────────────── */
+  /* The Figma line breaks are set for a 333px column; on a phone they leave
+     ragged half-lines. Drop the single breaks, keep the paragraph break —
+     after the text-fx wrap that pair reads br, empty .word, br. */
+  .intro br { display: none; }
+  .intro br:has(+ .word:empty + br),
+  .intro br + .word:empty + br { display: inline; }
+  .col-intro { padding-top: 24px; }
+  /* Footer: socials, time and coordinates as one set — same face, size and
+     leading, three even columns, top-aligned. */
+  .col-rail {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 20px;
+    align-items: start;
+    padding: 16px 20px 20px;
+  }
+  .rail-socials { flex-direction: column; gap: 0; }
+  .rail-socials,
+  .rail-clock,
+  .rail-coords {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--fg);
+  }
+  .rail-clock { margin-top: 0 !important; }
+
+  /* ── Projects (v2) ────────────────────────────────────────── */
+  /* Panel on top (filters, write-up, list); the band under it is the
+     stage — the idle cube lives there and the preview replaces it. */
+  .pp-v2 .proj-stage { display: flex; flex-direction: column; height: 100dvh; }
+  .pp-v2 .proj-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    padding: 20px 20px 14px;
+    gap: 22px;
+  }
+  .pp-v2 .proj-panel .rule { display: none; }
+  .pp-v2 .proj-filters {
+    padding: 0;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .pp-v2 .filter-list { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
+  .pp-v2 .proj-body { flex-direction: column; }
+  /* Fixed height: the write-up writes in and out as rows change, and the
+     list (and the stage under it) must not jump while a finger is on it. */
+  .pp-v2 .proj-role {
+    position: relative;
+    width: auto;
+    height: 64px;
+    gap: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .pp-v2 .role-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+  .pp-v2 .proj-role.is-idle .role-line {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+  /* 10px type, but rows stay ~22px tall so a finger can land on one. */
+  .pp-v2 .proj-list { margin-left: 0; line-height: 2.2; }
+  .pp-v2 .proj-field {
+    position: relative;
+    left: auto; top: auto; right: auto; bottom: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .pp-v2 .proj-thumb { display: block; }
+
+  /* ── Project interior (v2) ────────────────────────────────── */
+  /* Always the wide view, no toggle: the info sits compact on top, the
+     media band fills the rest, one frame at a time, swipe to page. */
+  .pv-v2 .pv-glyph,
+  .pv-v2 .pv-panel-right { display: none; }
+  .is-collapsed .pv-v2 .pv-panel,
+  .pv-v2 .pv-panel {
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    width: auto;
+    height: auto;
+    padding: 20px 20px 16px;
+    gap: 12px;
+    overflow: visible;
+  }
+  .is-collapsed .pv-v2 .pv-head,
+  .is-collapsed .pv-v2 .pv-body { visibility: visible; }
+  .pv-v2 .pv-head,
+  .pv-v2 .pv-desc,
+  .pv-v2 .pv-meta { width: auto; }
+  .pv-v2 .pv-body { gap: 14px; }
+  .pv-v2 .pv-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+  .pv-v2 .pv-desc:empty { display: none; }
+  .pv-v2 .pv-meta { align-items: baseline; gap: 16px; }
+  .pv-v2 .pv-roles { flex-direction: row; align-items: baseline; gap: 10px; }
+  .pv-v2 .pv-roles-list { flex-direction: row; flex-wrap: wrap; gap: 0 8px; }
+  /* The media is a vertical strip that loops forever (project-detail-v2.js
+     places each frame every tick) — so the band clips, it never scrolls. */
+  .is-collapsed .pv-v2 .pv-media {
+    position: fixed;
+    display: block;
+    overflow: hidden;
+    top: var(--pv-top, 140px);
+    bottom: 40px;
+    left: 0; right: 0;
+    padding: 0;
+    touch-action: none;
+  }
+  .is-collapsed .pv-v2 .pv-frame {
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: top left;
+  }
+  .is-collapsed .pv-v2 .pv-caption { left: 20px; right: 20px; bottom: 14px; }
+  .is-collapsed .pv-v2 .pv-progress { left: 0; }
+
+  /* ── test.fun ─────────────────────────────────────────────── */
+  /* test-page.js solves the row height so the whole wall fits the screen. */
+  .tf-stage { min-height: 0; height: 100dvh; padding: 20px 16px; }
 }

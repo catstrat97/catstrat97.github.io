@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sycamore — Sharang Sharma</title>
+  <script>
+    document.documentElement.classList.add('preload', 'is-collapsed');
+    setTimeout(function () { document.documentElement.classList.remove('preload'); }, 8000);
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="style.css?v=20261104">
+</head>
+
+<body class="page-scroll pv-v2">
+  <div class="crosshair" id="crosshair" aria-hidden="true">
+    <span class="ch-line ch-v"></span>
+    <span class="ch-line ch-h"></span>
+    <span class="ch-mark"></span>
+  </div>
+
+  <nav class="cursor-menu" id="cursor-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="projects-v2.html">Projects</a>
+    <a href="test.html">test.fun</a>
+  </nav>
+
+  <!-- ── Project interior — Figma 778:708 ──────────────────────── -->
+  <main class="pv-stage">
+    <aside class="pv-panel" id="pv-panel">
+      <span class="rule rule-r"></span>
+
+      <div class="pv-head">
+        <span class="pv-title" id="pv-title">Sycamore.so</span>
+      </div>
+
+      <div class="pv-body">
+        <p class="pv-desc" id="pv-desc">AI Agents are a powerful new mental model for the way knowledge work gets
+          done. This paradigm shift needs a paradigm shift in infrastructure to support secure, safe agentic work.
+          Sycamore guarantees secure and trusted infrastructure for enterprise AI agents. Build, deploy, and coordinate
+          autonomous agents with deterministic security, human oversight, and intelligence that compounds across your
+          organization.</p>
+
+        <div class="pv-meta">
+          <div class="pv-roles">
+            <span class="pv-roles-label">Roles</span>
+            <div class="pv-roles-list" id="pv-roles">
+              <span>Identity</span><span>Motion</span><span>Creative Coding</span><span>Tooling</span>
+            </div>
+          </div>
+          <a class="pv-link" id="pv-link" href="https://sycamore.so" target="_blank" rel="noopener"><span
+              class="pv-link-label">Link</span><svg class="pv-arrow" width="9" height="9" viewBox="0 0 9 9"
+              fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path
+                d="M0.131788 7.97555C0.307698 8.15136 0.592654 8.1514 0.768506 7.97555L7.20503 1.53707V6.3066C7.2052 6.55506 7.40678 6.75656 7.65523 6.7568C7.90387 6.7568 8.10525 6.5552 8.10542 6.3066V0.450154C8.10542 0.293027 8.02518 0.154706 7.90327 0.0741779C7.89584 0.0692358 7.88748 0.0659363 7.87983 0.0614825C7.86282 0.0516382 7.84543 0.0427022 7.8271 0.0351154C7.81243 0.0290018 7.7973 0.0249601 7.78218 0.0204669C7.76888 0.0165532 7.75592 0.0114361 7.74214 0.00874817C7.70987 0.00234502 7.67725 -0.000755696 7.64448 -4.08943e-05H1.80171C1.5531 0.000124868 1.35151 0.201509 1.35151 0.450154C1.35184 0.698524 1.5533 0.900184 1.80171 0.90035H6.56636L0.131788 7.33883C-0.0439703 7.51468 -0.0438882 7.79968 0.131788 7.97555Z"
+                fill="#CECECE" />
+            </svg></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Second column, flush right (Figma 778:731) — the parent is
+         justify-between, so the two panels sit at either edge. -->
+    <aside class="pv-panel pv-panel-right" aria-hidden="true">
+      <span class="rule rule-r"></span>
+      <div class="pv-slot"></div>
+    </aside>
+
+    <!-- Media stack — frames animate in, some scramble (Figma 778:750).
+         In slideshow mode (778:773) the same frames turn on their side. -->
+    <div class="pv-media" id="pv-media"></div>
+
+    <!-- v2 caption (wide view only): which project, which frame, how far. -->
+    <div class="pv-caption" aria-live="polite">
+      <span class="pv-cap-title" id="pv-cap-title"></span>
+      <span class="pv-cap-count" id="pv-cap-count"></span>
+    </div>
+    <div class="pv-progress" aria-hidden="true"><span id="pv-progress-bar"></span></div>
+
+    <!-- The sidebar toggle (Figma 778:716 expanded → 778:780 collapsed). It
+         sits outside both panels because it is the one thing that survives the
+         collapse — it lerps between the two seats while everything else goes. -->
+    <svg class="pv-glyph" width="24" height="15" viewBox="0 0 24 15" fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd"
+        d="M23.1055 14.582H0V0H23.1055V14.582ZM15.7676 13.582H22.1055V1H15.7676V13.582ZM1 13.582H14.7676V1H1V13.582Z"
+        fill="#CECECE" />
+    </svg>
+  </main>
+
+  <script src="sanity.js?v=20261104"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="site.js?v=20261104"></script>
+  <script src="project-detail-v2.js?v=20261104"></script>
+</body>
+
+</html>

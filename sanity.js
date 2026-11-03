@@ -20,19 +20,24 @@
     'mediaType, alt,' +
     '"imageUrl": image.asset->url,' +
     '"imageDims": image.asset->metadata.dimensions,' +
-    '"videoUrl": video.asset->url' +
+    '"videoUrl": video.asset->url,' +
+    '"posterUrl": poster.asset->url,' +
+    '"posterDims": poster.asset->metadata.dimensions' +
     '}' +
     '}';
 
   var PROJECT_PROJECTION =
     '{' +
-    '_id, title, "slug": slug.current, year, role, client, tags, displayOrder,' +
+    '_id, title, "slug": slug.current, year, role, client, link, tags, description, displayOrder,' +
     '"thumbnail": thumbnail' + MEDIA_PROJECTION + ',' +
     '"content": content[]' + MEDIA_PROJECTION +
     '}';
 
-  function runQuery(groq, params) {
-    var url = new URL(QUERY_HOST + '/' + API_VERSION + '/data/query/' + DATASET);
+  // test.fun is its own CMS — a separate dataset with its own media library.
+  var TESTFUN_DATASET = 'personal_projects';
+
+  function runQuery(groq, params, dataset) {
+    var url = new URL(QUERY_HOST + '/' + API_VERSION + '/data/query/' + (dataset || DATASET));
     url.searchParams.set('query', groq);
     if (params) {
       Object.keys(params).forEach(function (k) {
@@ -77,6 +82,19 @@
     },
     getSettings: function () {
       return runQuery('*[_type == "siteSettings"][0]');
+    },
+    // test.fun — every experiment with its media and (optional) series,
+    // read from the test.fun dataset, never from Work.
+    getExperiments: function () {
+      return runQuery(
+        '*[_type == "experiment"]{' +
+        '_id, title, year, "slug": slug.current,' +
+        '"series": series->{_id, title},' +
+        '"media": media[]' + MEDIA_PROJECTION +
+        '}',
+        null,
+        TESTFUN_DATASET
+      );
     },
   };
 })();

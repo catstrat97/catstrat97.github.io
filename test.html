@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>test.fun — Sharang Sharma</title>
+  <meta name="description" content="Experiments by Sharang Sharma — systems, not one-offs." />
+  <script>
+    document.documentElement.classList.add('preload');
+    setTimeout(function () { document.documentElement.classList.remove('preload'); }, 6000);
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="style.css?v=20261104">
+</head>
+
+<body class="tf-page page-scroll">
+  <!-- Figma 1010:696 — the crosshair lines are hidden on this page; only the
+       square mark follows the pointer. -->
+  <div class="crosshair" id="crosshair" aria-hidden="true">
+    <span class="ch-line ch-v"></span>
+    <span class="ch-line ch-h"></span>
+    <span class="ch-mark"></span>
+  </div>
+
+  <nav class="cursor-menu" id="cursor-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="projects.html">Projects</a>
+    <a href="test.html" class="is-active">test.fun</a>
+  </nav>
+
+  <!-- ── Experiment grid — Figma 1010:696 ───────────────────────────
+       Justified rows at a fixed height: widths follow each tile's aspect and
+       every full row spans exactly margin-to-margin. Built by test-page.js. -->
+  <!-- Preloader — the grid stays hidden until every image and video has
+       loaded; the count is the share of assets settled. -->
+  <div class="tf-loader" id="tf-loader" aria-live="polite">
+    <span class="tf-loader-count">00%</span>
+  </div>
+
+  <main class="tf-stage">
+    <div class="tf-grid" id="tf-grid" aria-label="Experiments"></div>
+  </main>
+
+  <script src="sanity.js?v=20261104"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="site.js?v=20261104"></script>
+  <script src="test-page.js?v=20261104"></script>
+</body>
+
+</html>

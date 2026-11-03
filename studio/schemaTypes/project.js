@@ -33,9 +33,22 @@ export default defineType({
       type: 'string',
     }),
     defineField({
+      name: 'description',
+      title: 'Description',
+      description: 'Panel copy shown on the project page, beside the media.',
+      type: 'text',
+      rows: 6,
+    }),
+    defineField({
       name: 'client',
       title: 'Client',
       type: 'string',
+    }),
+    defineField({
+      name: 'link',
+      title: 'Link',
+      description: 'Live site, shown as "link ↗" on the project page. Leave empty to hide it.',
+      type: 'url',
     }),
     defineField({
       name: 'tags',

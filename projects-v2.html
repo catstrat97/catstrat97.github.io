@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects (v2) — Sharang Sharma</title>
+  <meta name="description" content="Selected projects by Sharang Sharma." />
+  <script>
+    document.documentElement.classList.add('preload');
+    setTimeout(function () { document.documentElement.classList.remove('preload'); }, 6000);
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="style.css?v=20261104">
+</head>
+
+<body class="pp-v2">
+  <!-- Crosshair — confined to the panel on this page (Figma 774:304). -->
+  <div class="crosshair" id="crosshair" aria-hidden="true">
+    <span class="ch-line ch-v"></span>
+    <span class="ch-line ch-h"></span>
+    <span class="ch-mark"></span>
+    <span class="ch-cta">open project</span>
+  </div>
+
+  <nav class="cursor-menu" id="cursor-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="projects.html" class="is-active">Projects</a>
+    <a href="test.html">test.fun</a>
+  </nav>
+
+  <!-- ── Project stage — Figma 774:287 ─────────────────────────── -->
+  <main class="proj-stage" id="proj-stage">
+    <!-- Idle-state field, right half only. Rotating wireframe cube. -->
+    <div class="proj-field" id="noise-stage" data-region data-shape="cube" aria-hidden="true"></div>
+    <section class="proj-panel" id="proj-panel">
+      <span class="rule rule-r"></span>
+
+      <div class="proj-filters">
+        <span class="filters-label">Filters</span>
+        <div class="filter-list" id="filter-list"></div>
+      </div>
+
+      <div class="proj-body">
+        <!-- One role line that tracks the hovered row, writing in / redacting. -->
+        <!-- Pinned to the top of the list: a short write-up, roles beneath it.
+             Each written element holds text and nothing else — the split reads
+             textContent, and the flex/gap lives on the wrapper. -->
+        <div class="proj-role" id="proj-role" aria-hidden="true">
+          <p class="role-desc" id="role-desc"></p>
+          <div class="role-line"><span class="role-text"></span><span class="role-dots"></span></div>
+        </div>
+        <ul class="proj-list" id="proj-list"></ul>
+      </div>
+    </section>
+
+    <!-- Thumbnail frame — follows the pointer, damped (Figma 778:403). -->
+    <div class="proj-thumb" id="proj-thumb" aria-hidden="true">
+      <div class="thumb-media" id="thumb-media"></div>
+      <!-- Washed out before the page exits, so the thumbnail leaves in the
+           same language the interior frames arrive in. -->
+      <pre class="pv-scramble thumb-scramble" id="thumb-scramble"></pre>
+    </div>
+  </main>
+
+  <script src="sanity.js?v=20261104"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="site.js?v=20261104"></script>
+  <script src="project-page-v2.js?v=20261104"></script>
+</body>
+
+</html>

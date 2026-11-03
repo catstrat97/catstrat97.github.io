@@ -37,6 +37,14 @@ export default defineType({
       hidden: ({parent}) => parent?.mediaType !== 'video',
     }),
     defineField({
+      name: 'poster',
+      title: 'Poster',
+      description:
+        'Still shown until the video plays. Generated from the first frame by scripts/add-posters.mjs — set it here only to override.',
+      type: 'image',
+      hidden: ({parent}) => parent?.mediaType !== 'video',
+    }),
+    defineField({
       name: 'alt',
       title: 'Alt text',
       description: 'Describes the media for accessibility / SEO.',
