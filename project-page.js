@@ -349,7 +349,7 @@
   function open(p) {
     if (!p || !window.SiteExit || opening) return;
     opening = true;
-    var href = 'project-detail.html?id=' + encodeURIComponent(p.sanity || p.name);
+    var href = 'project-detail-v2.html?id=' + encodeURIComponent(p.sanity || p.name);
     /* No special-casing here: SiteExit's standard media exit finds the
        thumbnail's wash layer on its own and plays cover → strip → rules,
        in that order, same as any other page. */
