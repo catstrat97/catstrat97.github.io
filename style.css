@@ -1314,6 +1314,9 @@ body.is-reading .noise-field.is-region { opacity: 0.1; }
   /* All type is 10px on a phone. (The noise field draws on a canvas and
      sizes its own glyphs, so it is unaffected.) */
   body, body * { font-size: 10px !important; }
+  /* …except the media wash: SiteFX.wash sizes its grid to a 13px cell, so a
+     smaller glyph leaves the cover short of the frame's edges. */
+  body pre.pv-scramble { font-size: 13px !important; }
   /* At 10px a full-width line runs ~75 characters — too long to read on a
      phone. Running copy is held to ~45 characters, 7–8 words (the classic
      45–75 range, at its short end for a small screen). */
@@ -1454,7 +1457,9 @@ body.is-reading .noise-field.is-region { opacity: 0.1; }
     transform-origin: top left;
   }
   .is-collapsed .pv-v2 .pv-caption { left: 20px; right: 20px; bottom: 14px; }
-  .is-collapsed .pv-v2 .pv-progress { left: 0; }
+  /* Counter and progress line are off on phones for now. */
+  .is-collapsed .pv-v2 .pv-cap-count,
+  .is-collapsed .pv-v2 .pv-progress { display: none; }
 
   /* ── test.fun ─────────────────────────────────────────────── */
   /* test-page.js solves the row height so the whole wall fits the screen. */

@@ -27,18 +27,22 @@
   var PROJECTS = [
     {name: 'peak love',        role: 'identity, web design, development',  tags: ['identity', 'web design', 'development']},
     {name: 'choco colibri',    role: 'web design, development',            tags: ['web design', 'development']},
-    {name: 'brunk',            role: 'identity',                           tags: ['identity']},
-    {name: 'absentia labs',    role: 'identity, web design, motion',       tags: ['identity', 'web design', 'motion']},
-    {name: 'sycamore',         role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling'], sanity: 'Sycamore'},
-    {name: 'presentations.ai', role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling']},
-    {name: 'memory.store',     role: 'art direction, design, development', tags: ['development']},
-    {name: 'hsbc',             role: 'identity, web design, tooling',      tags: ['identity', 'web design', 'tooling']},
-    {name: 'bounty hunters',   role: 'identity',                           tags: ['identity']},
-    {name: 'boulderbox cafe',  role: 'identity',                           tags: ['identity']}
+    {name: 'sycamore',         role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling'], sanity: 'Sycamore'}
+    // Hidden until their media is in the CMS — restore a line to show it again.
+    // {name: 'brunk',            role: 'identity',                           tags: ['identity']},
+    // {name: 'absentia labs',    role: 'identity, web design, motion',       tags: ['identity', 'web design', 'motion']},
+    // {name: 'presentations.ai', role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling']},
+    // {name: 'memory.store',     role: 'art direction, design, development', tags: ['development']},
+    // {name: 'hsbc',             role: 'identity, web design, tooling',      tags: ['identity', 'web design', 'tooling']},
+    // {name: 'bounty hunters',   role: 'identity',                           tags: ['identity']},
+    // {name: 'boulderbox cafe',  role: 'identity',                           tags: ['identity']}
   ];
 
   var FILTERS = ['identity', 'web design', 'motion', 'development', 'tooling'];
   var activeFilter = null;          // null = the 'none' state — everything shows
+  var armedFilter = null;           // phone: the filter as it was at touch-down
+  var filterTouch = false;          // phone: did this touch start on the filters?
+  var TOUCH = document.documentElement.classList.contains('is-touch');
 
   /* ── Render ───────────────────────────────────────────────── */
   function splitChars(el, text) {
@@ -67,8 +71,20 @@
     splitChars(b, tag);
     b.addEventListener('click', function (e) {
       e.stopPropagation();          // filtering shouldn't pop the menu either
-      // Clicking the active filter again returns to the 'none' state.
-      activeFilter = activeFilter === tag ? null : tag;
+      // Clicking the active filter again returns to the 'none' state. On a
+      // phone the touch already applied it (below), so a tap only clears a
+      // filter that was active before the finger came down.
+      if (TOUCH) activeFilter = armedFilter === tag ? null : tag;
+      else activeFilter = activeFilter === tag ? null : tag;
+      applyFilter();
+    });
+    // Phone: a finger sliding across the filters applies each as it passes,
+    // the way the list previews each row it passes.
+    b.addEventListener('mouseover', function (e) {
+      // Only a touch that began on the filters — a scrub from the list that
+      // strays up across them must not re-filter on its way.
+      if (!TOUCH || !e.fromTouch || !filterTouch || activeFilter === tag) return;
+      activeFilter = tag;
       applyFilter();
     });
     filterEl.appendChild(b);
@@ -251,7 +267,6 @@
   // Phone: no space beside the list, so the stage is the band under it —
   // the field's box, which the CSS stacks below the panel. The finger sits
   // on the list while scrubbing, so the preview must never sit behind it.
-  var TOUCH = document.documentElement.classList.contains('is-touch');
   var fieldEl = document.getElementById('noise-stage');
   var TOUCH_PAD = 20;
   function stageBox(aspect) {
@@ -417,7 +432,10 @@
      crosshair's touch bridge moves the selection. */
   var armed = null;
   window.addEventListener('pointerdown', function (e) {
-    if (e.pointerType === 'touch') armed = current;
+    if (e.pointerType === 'touch') {
+      armed = current; armedFilter = activeFilter;
+      filterTouch = !!(e.target.closest && e.target.closest('.proj-filters'));
+    }
   }, true);
   document.addEventListener('click', function (e) {
     var row = e.target.closest ? e.target.closest('#proj-list li') : null;
@@ -464,7 +482,14 @@
     var inside = e.clientX >= b.left && e.clientX <= b.right &&
                  e.clientY >= b.top - PAD && e.clientY <= b.bottom + PAD;
     var onImage = overThumb(e);
-    if (TOUCH && !inside) return;       // a lifted finger keeps its selection
+    if (TOUCH) {
+      // A lifted finger keeps its selection (so a second tap can open it),
+      // but a finger that moves off the list — or onto the filters, which sit
+      // inside the hit area's top air — lets it go. The preview itself holds.
+      var onFilters = !!(e.target.closest && e.target.closest('.proj-filters'));
+      if (onImage) return;
+      if (!inside || onFilters) { leave(); return; }
+    }
     if (inside) {
       enter(rowAt(e.clientY));
     } else if (thumbOpen && e.clientX > b.right) {

@@ -27,14 +27,15 @@
   var PROJECTS = [
     {name: 'peak love',        role: 'identity, web design, development',  tags: ['identity', 'web design', 'development']},
     {name: 'choco colibri',    role: 'web design, development',            tags: ['web design', 'development']},
-    {name: 'brunk',            role: 'identity',                           tags: ['identity']},
-    {name: 'absentia labs',    role: 'identity, web design, motion',       tags: ['identity', 'web design', 'motion']},
-    {name: 'sycamore',         role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling'], sanity: 'Sycamore'},
-    {name: 'presentations.ai', role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling']},
-    {name: 'memory.store',     role: 'art direction, design, development', tags: ['development']},
-    {name: 'hsbc',             role: 'identity, web design, tooling',      tags: ['identity', 'web design', 'tooling']},
-    {name: 'bounty hunters',   role: 'identity',                           tags: ['identity']},
-    {name: 'boulderbox cafe',  role: 'identity',                           tags: ['identity']}
+    {name: 'sycamore',         role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling'], sanity: 'Sycamore'}
+    // Hidden until their media is in the CMS — restore a line to show it again.
+    // {name: 'brunk',            role: 'identity',                           tags: ['identity']},
+    // {name: 'absentia labs',    role: 'identity, web design, motion',       tags: ['identity', 'web design', 'motion']},
+    // {name: 'presentations.ai', role: 'identity, motion, tooling',          tags: ['identity', 'motion', 'tooling']},
+    // {name: 'memory.store',     role: 'art direction, design, development', tags: ['development']},
+    // {name: 'hsbc',             role: 'identity, web design, tooling',      tags: ['identity', 'web design', 'tooling']},
+    // {name: 'bounty hunters',   role: 'identity',                           tags: ['identity']},
+    // {name: 'boulderbox cafe',  role: 'identity',                           tags: ['identity']}
   ];
 
   var FILTERS = ['identity', 'web design', 'motion', 'development', 'tooling'];

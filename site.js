@@ -756,7 +756,9 @@
   function wash(el, pre, dir, onDone, sweepMs) {
     var done = onDone || function () {};
     if (!el || !pre) { done(); return; }
-    var b = el.getBoundingClientRect();
+    // Layout size, not the painted rect: the pre lives in the element's own
+    // (untransformed) box, so a scaled frame must not shrink the grid.
+    var b = {width: el.offsetWidth, height: el.offsetHeight};
     var cols = Math.ceil(b.width / 7.9);        // ~13px IBM Plex Mono cell
     var rows = Math.ceil(b.height / 13.7);
     if (cols < 1 || rows < 1) { done(); return; }
@@ -788,7 +790,7 @@
       // underneath the wash, and a grid measured once would keep covering the
       // old shape — leaving the new area bare while it churns.
       if (fired && dir === 'out') {
-        var nb = el.getBoundingClientRect();
+        var nb = {width: el.offsetWidth, height: el.offsetHeight};
         if (nb.width && nb.height &&
             (Math.abs(nb.width - b.width) > 1 || Math.abs(nb.height - b.height) > 1)) {
           b = nb;
